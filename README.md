@@ -1,7 +1,7 @@
 # clojurejs
 
 clojurejs is a naive implementation of a Clojure subset language to
-Javascript.
+Javascript translator.
 
 # License
 
