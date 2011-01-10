@@ -147,10 +147,8 @@
         (print ";")))))
 
 (defn emit-statements [exprs]
-  (if (< 1 (count exprs))
-    (doseq [expr exprs]
-      (emit-statement expr))
-    (emit (first exprs))))
+  (doseq [expr exprs]
+    (emit-statement expr)))
 
 (defn emit-statements-with-return [exprs]
   (doseq [expr (butlast exprs)]
@@ -381,12 +379,16 @@
        (coll? expr) (emit-function-form expr)
        true (print expr)))))
 
-(defn js-emit [exprs] (with-out-str (doseq [expr exprs] (emit-statement expr))))
+(defn js-emit [expr] (emit expr))
 
 (defmacro js [& exprs]
   "Translate the Clojure subset `exprs' to a string of javascript
 code."
-  `(with-out-str (emit-statements (quote ~exprs))))
+  (let [exprs# `(quote ~exprs)]
+    `(with-out-str
+       (if (< 1 (count ~exprs#))
+         (emit-statements ~exprs#)
+         (js-emit (first ~exprs#))))))
 
 (defmacro js-let [bindings & exprs]
   "Bind Clojure environment values to named vars of a cljs block, and
