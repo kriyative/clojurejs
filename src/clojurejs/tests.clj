@@ -87,4 +87,4 @@
 
   )
 
-;; (run-tests 'clj2js.tests)
+;; (run-tests 'clojurejs.tests)
