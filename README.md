@@ -73,6 +73,10 @@ printed Javascript, which is not the default.
 The defn form doesn't support docstrings or multiple arity
 forms. Docstrings might be useful to implement sometime in the future.
 
+There's no support for namespaces. Macro expanders are defined in a
+global ref, which is preserved between successive invocations of the
+translator.
+
 # boot.cljs
 
 The file `boot.cljs' includes some useful macros and utility functions
@@ -80,8 +84,9 @@ implemented in clojurejs.
 
 ## (html _spec_)
 
-_html_ implements a minimal HTML templating facility which is similar
-to hiccup, but is executed browser side.
+The _html_ function in boot.cljs implements a minimal HTML templating
+facility which is similar to hiccup, but is executed on the browser
+side.
 
     (jq
      (defn test []
@@ -95,5 +100,5 @@ to hiccup, but is executed browser side.
                    [:li [:a {:class "link_about"} "About"]]
                    [:li [:a {:class "link_contact"} "Contact"]]]]))))
 
-Invoking _test_ on the browser side would create and add the dom tree
-specified in the array structure to the document body.
+Invoking _(test)_ on the browser side would create and add the dom
+tree specified in the array structure to the document body.
