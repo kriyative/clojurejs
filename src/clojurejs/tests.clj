@@ -25,6 +25,9 @@
   (is (= (js (+ 1 2 3)) "(1 + 2 + 3)"))
   (is (= (js (+ "foo" "bar" "baz")) "(\"foo\" + \"bar\" + \"baz\")"))
   
+  (is (= (js (append '(:foo bar baz) '(quux)))
+         "append(['foo','bar','baz'], ['quux'])"))
+
   (is (= (js (defn foo [a b] (+ a b)))
          "foo = function(a, b) { return (a + b); }"))
   
