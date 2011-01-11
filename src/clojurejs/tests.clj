@@ -84,6 +84,17 @@
   (is (= (js (defn isa? [i c] (inline "return i instanceof c")))
          "isap = function(i, c) { return i instanceof c; }"))
 
+  (is (= (js
+          (defn test []
+            (try
+              (/ 5 0)
+              (catch ex
+                  (console.log ex))
+              (finally
+               0))))
+
+         "test = function() { try { return (5 / 0); } catch (ex) { return console.log(ex); } finally { return 0; }; }"))
+
   )
 
 ;; (run-tests 'clojurejs.tests)
