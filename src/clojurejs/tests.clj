@@ -35,8 +35,8 @@
          "function (x) {\n    /* Some func\n       does stuff */\n    return (x + 1);\n}"))
 
   (is (= (js (defn foo [a b] (+ a b)))
-         "foo = function(a, b) { return (a + b); }"))
-  
+         "foo = function (a, b) { return (a + b); }"))
+
   (is (= (js
           (defn test []
             (let [a 1
@@ -44,7 +44,7 @@
                   c (+ b 1)]
               (+ a b c))))
 
-         "test = function() { return (function () { var  a = 1, b = (a + 1), c = (b + 1); return (a + b + c);  })(); }"))
+         "test = function () { return (function () { var  a = 1, b = (a + 1), c = (b + 1); return (a + b + c);  })(); }"))
   
   (is (= (js
           (defmacro nil? [x] `(== nil ~x))
@@ -59,14 +59,14 @@
                 (recur (+ str delim (get arr i))
                        (+ i 1))
                 str))))
-         "join = function(arr, delim) { return (function () { for (var str = arr[0],i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; } })(); }"))
+         "join = function (arr, delim) { return (function () { for (var str = arr[0],i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; } })(); }"))
 
   (is (= (js
           (defmacro boolean? [b] `(== "boolean" (typeof ~b)))
           (defmacro string? [s] `(== "string" (typeof ~s)))
           (defmacro first [x] `(get ~x 0))
           (defn test [a] (if (! (or (boolean? a) (string? a))) (first a))))
-         " test = function(a) { if (!((\"boolean\" == typeof(a)) || (\"string\" == typeof(a)))) { return a[0]; }; };"))
+         " test = function (a) { if (!((\"boolean\" == typeof(a)) || (\"string\" == typeof(a)))) { return a[0]; }; };"))
 
   (is (= (js
           (defmacro number? [n] `(== "number" (typeof ~n)))
@@ -83,15 +83,15 @@
              (symbol? a) "yes"
              (number? a) "no"
              :else "don't know")))
-         " test = function(a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; } else { return \"don't know\"; }; }; };"))
+         " test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; } else { return \"don't know\"; }; }; };"))
 
   (is (= (js
           (defn test [a]
             ((if (> a 0) minus plus) a 1)))
-         "test = function(a) { return (((a > 0) ? minus : plus))(a,1); }"))
+         "test = function (a) { return (((a > 0) ? minus : plus))(a,1); }"))
 
   (is (= (js (defn isa? [i c] (inline "return i instanceof c")))
-         "isap = function(i, c) { return i instanceof c; }"))
+         "isap = function (i, c) { return i instanceof c; }"))
 
   (is (= (js
           (defn test []
@@ -102,7 +102,7 @@
               (finally
                0))))
 
-         "test = function() { try { return (5 / 0); } catch (ex) { return console.log(ex); } finally { return 0; }; }"))
+         "test = function () { try { return (5 / 0); } catch (ex) { return console.log(ex); } finally { return 0; }; }"))
 
   )
 

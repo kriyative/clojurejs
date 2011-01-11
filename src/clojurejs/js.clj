@@ -164,16 +164,6 @@
   (print " = ")
   (emit value))
 
-(defmethod emit "defn" [[_ name args & body]]
-  (emit-symbol name)
-  (print " = function(")
-  (binding [*return-expr* false] (emit-delimited ", " args))
-  (print ") {")
-  (with-indent []
-    (emit-statements-with-return body))
-  (newline-indent)
-  (print "}"))
-
 (def *macros* (ref {}))
 (defn- macro? [n] (and (symbol? n) (contains? @*macros* (name n))))
 (defn- get-macro [n] (and (symbol? n) (get @*macros* (name n))))
@@ -204,7 +194,7 @@
             lst   (str "   " line " */")
             :else (str "   " line)))))))
 
-(defmethod emit "fn" [[_ & fdecl]]
+(defn- emit-function [fdecl]
   (let [docstring (if (string? (first fdecl))
                     (first fdecl)
                     nil)
@@ -224,6 +214,16 @@
       (emit-statements-with-return body))
     (newline-indent)
     (print "}")))
+
+(defmethod emit "fn" [[_ & fdecl]]
+  (emit-function fdecl))
+
+(defmethod emit "defn" [[_ name & fdecl]]
+  (assert-args defn
+    (symbol? name) "a symbol as its name")
+  (emit-symbol name)
+  (print " = ")
+  (emit-function fdecl))
 
 (def *in-block-exp* false)
 (defmacro with-block [& body]
