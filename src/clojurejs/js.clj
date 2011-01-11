@@ -2,7 +2,8 @@
 
 (ns clojurejs.js
   (:require [clojure.string :as str])
-  (:use [clojure.java.io :only [reader]]))
+  (:use [clojure.java.io :only [reader]]
+        [clojurejs.util :only [assert-args]]))
 
 (defn- sexp-reader [source]
   "Wrap `source' in a reader suitable to pass to `read'."
@@ -190,15 +191,32 @@
         macex (apply mac args)]
     (emit macex)))
 
-(defmethod emit "fn" [[_ args & body]]
-  (newline-indent)
-  (print "function (")
-  (emit-delimited ", " args)
-  (print ") {")
-  (with-indent []
-    (emit-statements-with-return body))
-  (newline-indent)
-  (print "}"))
+(defn- emit-docstring [docstring]
+  (when *print-pretty*
+    (doseq [line (str/split-lines docstring)]
+      (newline-indent)
+      (print (str "/* " line " */")))))
+
+(defmethod emit "fn" [[_ & fdecl]]
+  (let [docstring (if (string? (first fdecl))
+                    (first fdecl)
+                    nil)
+        fdecl     (if (string? (first fdecl))
+                    (rest fdecl)
+                    fdecl)
+        args      (first fdecl)
+        body      (rest fdecl)]
+    (assert-args fn
+      (vector? args) "a vector for its bindings")
+    (print "function (")
+    (binding [*return-expr* false] (emit-delimited ", " args))
+    (print ") {")
+    (with-indent []
+      (when docstring
+        (emit-docstring docstring))
+      (emit-statements-with-return body))
+    (newline-indent)
+    (print "}")))
 
 (def *in-block-exp* false)
 (defmacro with-block [& body]

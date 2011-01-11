@@ -28,6 +28,12 @@
   (is (= (js (append '(:foo bar baz) '(quux)))
          "append(['foo','bar','baz'], ['quux'])"))
 
+  (is (= (js (fn [a b] (+ a b)))
+         "function (a, b) { return (a + b); }"))
+
+  (is (= (with-pretty-print (js (fn "Some func\ndoes stuff" [x] (+ x 1))))
+         "function (x) {\n    /* Some func */\n    /* does stuff */\n    return (x + 1);\n}"))
+
   (is (= (js (defn foo [a b] (+ a b)))
          "foo = function(a, b) { return (a + b); }"))
   
