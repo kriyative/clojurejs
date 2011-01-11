@@ -1,9 +1,8 @@
 ;; js.clj -- a naive Clojure (subset) to javascript translator
 
 (ns clojurejs.js
-  (:require [clojure.contrib.seq-utils :as seq-utils])
-  (:use [clojure.contrib.duck-streams :exclude [spit]]
-        clojure.contrib.java-utils clojure.contrib.str-utils))
+  (:require [clojure.string :as str])
+  (:use [clojure.java.io :only [reader]]))
 
 (defn- sexp-reader [source]
   "Wrap `source' in a reader suitable to pass to `read'."
@@ -83,18 +82,18 @@
     (emit-symbol expr)))
 
 (defn- unary-operator? [op]
-  (and (symbol? op) (seq-utils/includes? #{"++" "--" "!"} (name op))))
+  (boolean (and (symbol? op) (#{"++" "--" "!"} (name op)))))
 
 (defn- emit-unary-operator [op arg]
   (print (name op))
   (emit arg))
 
 (defn- infix-operator? [op]
-  (and (symbol? op)
-       (seq-utils/includes? #{"and" "or" "+" "-" "/" "*" "%"
-                              ">" ">=" "<" "<=" "==" "===" "!=" "!=="
-                              "instanceof"}
-                            (name op))))
+  (boolean (and (symbol? op)
+                 (#{"and" "or" "+" "-" "/" "*" "%"
+                    ">" ">=" "<" "<=" "==" "===" "!=" "!=="
+                    "instanceof"}
+                  (name op)))))
 
 (defn- emit-infix-operator [op & args]
   (let [lisp->js {"and" "&&"
