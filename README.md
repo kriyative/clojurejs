@@ -14,6 +14,32 @@ The following keywords are implemented by the clojurejs translator:
     def, defn, defmacro, do, dokeys, fn, get, if, inline, length, let,
     loop, new, nil, recur, return, set!, try/catch/finally
 
+# Special Forms
+
+clojurejs introduces a couple of special forms, to support Javascript
+specific functionality.
+
+## dokeys
+
+_dokeys_ is a Clojure (subset) equivalent of the Javascript for..in
+loop.
+
+    (dokeys [k attrs] (.setAttribute el k (get attrs k)))
+
+translates to the following Javascript:
+
+    for (var k in attrs) { el.setAttribute(k, attrs[k]); }
+
+## inline
+
+_inline_ is an escape hatch to introduce inlined Javascript code, e.g,
+
+    (defn isa? [i c] (inline "return i instanceof c"))
+
+translates to the following Javascript:
+
+    isap = function(i, c) { return i instanceof c; }
+
 # Examples
 
 Please note that the output from the following examples are pretty
@@ -37,12 +63,14 @@ printed Javascript, which is not the default.
          })();
      }"
 
+
     ;; macros
     (js
      (defmacro nil? [x] `(== nil ~x))
      (if (nil? a) (print "is null")))
   
     " if ((null == a)) { print(\"is null\"); };"
+
 
     ;; special forms loop/recur
     (js
@@ -70,12 +98,16 @@ printed Javascript, which is not the default.
 
 # Caveats
 
-The defn form doesn't support docstrings or multiple arity
-forms. Docstrings might be useful to implement sometime in the future.
+The _defn_ form doesn't support doc-strings or multiple arity
+forms. Doc-strings might be interesting and useful to implement in the
+future.
 
-There's no support for namespaces. Macro expanders are defined in a
-global ref, which is preserved between successive invocations of the
-translator.
+Currently, there's no support for namespaces. Macro expanders are
+defined in a global ref, which is preserved between successive
+invocations of the translator.
+
+There's lots of room for improvements in the generated Javascript,
+from performance tweaks to better formatting of expressions.
 
 # boot.cljs
 
