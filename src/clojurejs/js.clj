@@ -19,6 +19,7 @@
 (defn- re? [expr] (= (class expr) java.util.regex.Pattern))
 
 (def *inline-if* false) 
+(def *quoted* false)
 
 (def *print-pretty* false)
 (defmacro with-pretty-print [& body]
@@ -73,12 +74,13 @@
   (print (str "/" (apply str (replace {\/ "\\/"} (str expr))) "/")))
 
 (defn- emit-symbol [expr]
-  (print (apply str (replace {\- "_" \* "__" \? "p" \! "f" \= "_eq"} (name expr)))))
+  (if *quoted* (print "'"))
+  (print (apply str (replace {\- "_" \* "__" \? "p" \! "f" \= "_eq"} (name expr))))
+  (if *quoted* (print "'")))
 
 (defn- emit-keyword [expr]
-  (print "'")
-  (emit-symbol expr)
-  (print "'"))
+  (binding [*quoted* true]
+    (emit-symbol expr)))
 
 (defn- unary-operator? [op]
   (and (symbol? op) (seq-utils/includes? #{"++" "--" "!"} (name op))))
@@ -365,8 +367,12 @@
 (defmethod emit "inline" [[_ js]]
   (print js))
 
+(defmethod emit "quote" [[_ expr]]
+  (binding [*quoted* true]
+    (emit expr)))
+
 (defmethod emit :default [expr]
-  (if (and (coll? expr) (macro? (first expr)))
+  (if (and (coll? expr) (not *quoted*) (macro? (first expr)))
     (emit-macro-expansion expr)
     (with-return-expr []
       (cond
@@ -376,6 +382,7 @@
        (keyword? expr) (emit-keyword expr)
        (string? expr) (pr expr)
        (symbol? expr) (emit-symbol expr)
+       (and *quoted* (coll? expr)) (emit-vector expr)
        (coll? expr) (emit-function-form expr)
        true (print expr)))))
 
