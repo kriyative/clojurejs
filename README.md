@@ -44,12 +44,12 @@ following:
 
     Lisp         Javascript
     ----         ----------
-    foo-bar	 foo_bar
+    foo-bar      foo_bar
     *foo*        _foo_
     number?      numberp
     inc!         incf
-    and		 &&
-    or		 ||
+    and          &&
+    or           ||
 
 ## Operators
 
@@ -59,6 +59,19 @@ clojurejs recognizes the following standard Javascript operators:
     && || + - * / %
     > >= < <= == === != !==
     instanceof
+
+## Arrays and Objects
+
+Javascript Array and Object member access is via the ``get`` form,
+e.g.,
+
+    (def arr [:foo :bar :baz])
+    (get arr 0)                ;; => :foo
+    (set! (get arr 0) :quux)
+    arr                        ;; => [:quux :bar :baz]
+
+    ;; set the fillStyle of a canvas context
+    (set! (get ctx 'fillStyle) "red")
 
 ## Special Forms
 
