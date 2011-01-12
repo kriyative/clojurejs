@@ -127,8 +127,8 @@
   (binding [*inline-if* true]
     (let [[fun & args] form
           method? (fn [f] (and (symbol? f) (= \. (first (name f)))))
-          invoke-method (fn [form] (let [[sel recvr & args] form]
-                                     (apply emit-method-call recvr sel args)))
+          invoke-method (fn [[sel recvr & args]]
+                          (apply emit-method-call recvr sel args))
           invoke-fun (fn [fun & args]
                        (with-parens [] (emit fun))
                        (with-parens [] (emit-delimited "," args)))]

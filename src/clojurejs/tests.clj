@@ -30,7 +30,10 @@
 
   (is (= (js (defn foo [a b] (+ a b)))
          "foo = function(a, b) { return (a + b); }"))
-  
+
+  (is (= (js (defn foo [c] (.methodOf c)))
+         "foo = function(c) { return c.methodOf(); }"))
+
   (is (= (js
           (defn test []
             (let [a 1
