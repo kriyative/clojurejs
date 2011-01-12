@@ -188,11 +188,13 @@
           lst   (last lines)]
       (doseq [line lines]
         (newline-indent)
-        (print
-          (condp = line
-            fst   (str "/* " line)
-            lst   (str "   " line " */")
-            :else (str "   " line)))))))
+        (if (= fst lst)
+          (print (str "/* " line " */"))
+          (print
+           (condp = line
+             fst   (str "/* " line)
+             lst   (str "   " line " */")
+             :else (str "   " line))))))))
 
 (defn- emit-function [fdecl]
   (let [docstring (if (string? (first fdecl))

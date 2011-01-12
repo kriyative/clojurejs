@@ -30,6 +30,9 @@
 
   (is (= (js (fn [a b] (+ a b)))
          "function (a, b) { return (a + b); }"))
+  
+  (is (= (with-pretty-print (js (fn "Some func does stuff" [x] (+ x 1))))
+         "function (x) {\n    /* Some func does stuff */\n    return (x + 1);\n}"))
 
   (is (= (with-pretty-print (js (fn "Some func\ndoes stuff" [x] (+ x 1))))
          "function (x) {\n    /* Some func\n       does stuff */\n    return (x + 1);\n}"))
