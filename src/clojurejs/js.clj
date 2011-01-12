@@ -1,9 +1,9 @@
 ;; js.clj -- a naive Clojure (subset) to javascript translator
 
 (ns clojurejs.js
-  (:require [clojure.contrib.seq-utils :as seq-utils])
-  (:use [clojure.contrib.duck-streams :exclude [spit]]
-        clojure.contrib.java-utils clojure.contrib.str-utils))
+  (:require [clojure.string :as str])
+  (:use [clojure.java.io :only [reader]]
+        [clojurejs.util :only [assert-args]]))
 
 (defn- sexp-reader [source]
   "Wrap `source' in a reader suitable to pass to `read'."
@@ -83,18 +83,18 @@
     (emit-symbol expr)))
 
 (defn- unary-operator? [op]
-  (and (symbol? op) (seq-utils/includes? #{"++" "--" "!"} (name op))))
+  (boolean (and (symbol? op) (#{"++" "--" "!"} (name op)))))
 
 (defn- emit-unary-operator [op arg]
   (print (name op))
   (emit arg))
 
 (defn- infix-operator? [op]
-  (and (symbol? op)
-       (seq-utils/includes? #{"and" "or" "+" "-" "/" "*" "%"
-                              ">" ">=" "<" "<=" "==" "===" "!=" "!=="
-                              "instanceof"}
-                            (name op))))
+  (boolean (and (symbol? op)
+                 (#{"and" "or" "+" "-" "/" "*" "%"
+                    ">" ">=" "<" "<=" "==" "===" "!=" "!=="
+                    "instanceof"}
+                  (name op)))))
 
 (defn- emit-infix-operator [op & args]
   (let [lisp->js {"and" "&&"
@@ -164,16 +164,6 @@
   (print " = ")
   (emit value))
 
-(defmethod emit "defn" [[_ name args & body]]
-  (emit-symbol name)
-  (print " = function(")
-  (binding [*return-expr* false] (emit-delimited ", " args))
-  (print ") {")
-  (with-indent []
-    (emit-statements-with-return body))
-  (newline-indent)
-  (print "}"))
-
 (def *macros* (ref {}))
 (defn- macro? [n] (and (symbol? n) (contains? @*macros* (name n))))
 (defn- get-macro [n] (and (symbol? n) (get @*macros* (name n))))
@@ -191,15 +181,49 @@
         macex (apply mac args)]
     (emit macex)))
 
-(defmethod emit "fn" [[_ args & body]]
-  (newline-indent)
-  (print "function (")
-  (emit-delimited ", " args)
-  (print ") {")
-  (with-indent []
-    (emit-statements-with-return body))
-  (newline-indent)
-  (print "}"))
+(defn- emit-docstring [docstring]
+  (when *print-pretty*
+    (let [lines (str/split-lines docstring)
+          fst   (first lines)
+          lst   (last lines)]
+      (doseq [line lines]
+        (newline-indent)
+        (print
+          (condp = line
+            fst   (str "/* " line)
+            lst   (str "   " line " */")
+            :else (str "   " line)))))))
+
+(defn- emit-function [fdecl]
+  (let [docstring (if (string? (first fdecl))
+                    (first fdecl)
+                    nil)
+        fdecl     (if (string? (first fdecl))
+                    (rest fdecl)
+                    fdecl)
+        args      (first fdecl)
+        body      (rest fdecl)]
+    (assert-args fn
+      (vector? args) "a vector for its bindings")
+    (print "function (")
+    (binding [*return-expr* false] (emit-delimited ", " args))
+    (print ") {")
+    (with-indent []
+      (when docstring
+        (emit-docstring docstring))
+      (emit-statements-with-return body))
+    (newline-indent)
+    (print "}")))
+
+(defmethod emit "fn" [[_ & fdecl]]
+  (emit-function fdecl))
+
+(defmethod emit "defn" [[_ name & fdecl]]
+  (assert-args defn
+    (symbol? name) "a symbol as its name")
+  (emit-symbol name)
+  (print " = ")
+  (emit-function fdecl))
 
 (def *in-block-exp* false)
 (defmacro with-block [& body]

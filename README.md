@@ -189,9 +189,9 @@ translates to:
 
 # Caveats
 
-The _defn_ form doesn't support doc-strings, multiple arity forms, or
-keyword args. Doc-strings might be interesting and useful to implement
-in the future.
+The _defn_ form doesn't support multiple arity forms or
+keyword args. Doc-strings are supported and emitted as comments
+if pretty-printing is turned on.
 
 Currently, there's no support for namespaces. Macro expanders are
 defined in a global ref, which is preserved between successive

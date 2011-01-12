@@ -5,4 +5,4 @@
                  [org.clojure/clojure-contrib "1.2.0"]]
   :dev-dependencies [[swank-clojure "1.2.1"]
                      [lein-clojars "0.5.0"]]
-  :aot [clojurejs.js clojurejs.tests])
+  :test-path "src/clojurejs")
