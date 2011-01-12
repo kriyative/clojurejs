@@ -183,18 +183,13 @@
 
 (defn- emit-docstring [docstring]
   (when *print-pretty*
-    (let [lines (str/split-lines docstring)
-          fst   (first lines)
-          lst   (last lines)]
-      (doseq [line lines]
+    (let [lines (str/split-lines docstring)]
+      (newline-indent)
+      (print (str "/* " (first lines)))
+      (doseq [line (rest lines)]
         (newline-indent)
-        (if (= fst lst)
-          (print (str "/* " line " */"))
-          (print
-           (condp = line
-             fst   (str "/* " line)
-             lst   (str "   " line " */")
-             :else (str "   " line))))))))
+        (print (str "   " line)))
+      (print " */"))))
 
 (defn- emit-function [fdecl]
   (let [docstring (if (string? (first fdecl))
