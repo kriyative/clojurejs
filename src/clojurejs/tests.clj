@@ -24,6 +24,9 @@
   (is (= (js #"^([a-z]*)([0-9]*)") "/^([a-z]*)([0-9]*)/"))
   (is (= (js (+ 1 2 3)) "(1 + 2 + 3)"))
   (is (= (js (+ "foo" "bar" "baz")) "(\"foo\" + \"bar\" + \"baz\")"))
+
+  (is (= (js (:test {:test 1 :foo 2 :bar 3}))
+         "{'test' : 1,'foo' : 2,'bar' : 3}['test']"))
   
   (is (= (js (append '(:foo bar baz) '(quux)))
          "append(['foo','bar','baz'], ['quux'])"))
@@ -77,19 +80,31 @@
   (is (= (js
           (defmacro number? [n] `(== "number" (typeof ~n)))
           (defmacro cond [& [pred consequent & alternates]]
-            (if (and (coll? alternates) (= (first alternates) :else))
-              `(if ~pred
-                 ~consequent
-                 ~(second alternates))
-              `(if ~pred
-                 ~consequent
-                 (cond ~@alternates))))
+            (if (coll? alternates)
+              (if (= (first alternates) :else)
+                `(if ~pred ~consequent ~(second alternates))
+                `(if ~pred ~consequent (cond ~@alternates)))
+              `(if ~pred ~consequent)))
           (defn test [a]
             (cond
              (symbol? a) "yes"
              (number? a) "no"
              :else "don't know")))
          " test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; } else { return \"don't know\"; }; }; };"))
+
+  (is (= (js
+          (defmacro number? [n] `(== "number" (typeof ~n)))
+          (defmacro cond [& [pred consequent & alternates]]
+            (if (coll? alternates)
+              (if (= (first alternates) :else)
+                `(if ~pred ~consequent ~(second alternates))
+                `(if ~pred ~consequent (cond ~@alternates)))
+              `(if ~pred ~consequent)))
+          (defn test [a]
+            (cond
+             (symbol? a) "yes"
+             (number? a) "no")))
+         " test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; }; }; };"))
 
   (is (= (js
           (defn test [a]
