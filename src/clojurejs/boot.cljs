@@ -13,13 +13,11 @@
 (defmacro when-not [pred & body] `(if (false? ~pred) (do ~@body)))
 (defmacro unless [pred & body] `(if (false? ~pred) (do ~@body)))
 (defmacro cond [& [pred consequent & alternates]]
-  (if (and (coll? alternates) (= (first alternates) :else))
-    `(if ~pred
-       ~consequent
-       ~(second alternates))
-    `(if ~pred
-       ~consequent
-       (cond ~@alternates))))
+  (if (coll? alternates)
+    (if (= (first alternates) :else)
+      `(if ~pred ~consequent ~(second alternates))
+      `(if ~pred ~consequent (cond ~@alternates)))
+    `(if ~pred ~consequent)))
 (defmacro first [x] `(get ~x 0))
 (defmacro second [x] `(get ~x 1))
 (defmacro third [x] `(get ~x 2))
@@ -30,10 +28,20 @@
 (defmacro boolean? [b] `(== "boolean" (typeof ~b)))
 (defmacro str-join [sep seq] `(.join ~seq ~sep))
 (defmacro str [& args] `(+ "" ~@args))
-(defmacro inc! [arg] `(do (set! ~arg (+ 1 ~arg)) ~arg))
+(defmacro inc! [arg] `(set! ~arg (+ 1 ~arg)))
+(defmacro doseq [[var seq] & body]
+  `(let [seq# ~seq
+         ~var nil]
+     (loop [i# 0]
+       (when (< i# (length seq#))
+         (set! ~var (get seq# i#))
+         ~@body
+         (recur (+ i# 1))))))
 
 (def *gensym* 999)
-(defn gensym [] (str "_gensym" (inc! *gensym*)))
+(defn gensym []
+  (inc! *gensym*)
+  (str "_gensym" *gensym*))
 
 (defn subvec [a s e]
   (let [e (or e (length a))
@@ -78,4 +86,3 @@
      (string? spec) (.createTextNode document spec)
      (array? spec) (html1 spec)
      :else spec)))
-
