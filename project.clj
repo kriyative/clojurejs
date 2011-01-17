@@ -7,4 +7,4 @@
                      [lein-clojars "0.5.0"]
                      [lein-difftest "1.3.1"]]
   :hooks [leiningen.hooks.difftest]
-  :test-path "src/clojurejs")
+  :test-path "test")

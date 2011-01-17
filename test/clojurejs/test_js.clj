@@ -10,8 +10,8 @@
 ;; agreeing to be bound by the terms of this license.  You must not
 ;; remove this notice, or any other, from this software.
 
-(ns clojurejs.tests
-  (:use clojure.contrib.test-is)
+(ns clojurejs.test-js
+  (:use [clojure.test :only [deftest is]])
   (:use clojurejs.js))
 
 (deftest literals
