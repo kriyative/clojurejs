@@ -52,9 +52,20 @@
                   b (+ a 1)
                   c (+ b 1)]
               (+ a b c))))
+         "test = function () { var  a = 1,  b = (a + 1),  c = (b + 1); return (a + b + c);; }"))
 
-         "test = function () { return (function () { var  a = 1, b = (a + 1), c = (b + 1); return (a + b + c);  })(); }"))
-  
+  (is (= (js
+          (defn test []
+            (let [[a b & r] [1 2 3 4]]
+              [(+ a b) r])))
+         "test = function () { var  _temp_1000 = [1,2,3,4], a = _temp_1000[0], b = _temp_1000[1],  r = _temp_1000.slice(2); return [(a + b),r];; }"))
+
+  (is (= (js
+          (defn test [[a b & r]]
+            [(+ a b) r]))
+         "test = function () { var  _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], a = _temp_1001[0], b = _temp_1001[1],  r = _temp_1001.slice(2); return [(a + b),r]; }"))
+
+
   (is (= (js
           (defmacro nil? [x] `(== nil ~x))
           (if (nil? a) (print "is null")))
@@ -68,7 +79,7 @@
                 (recur (+ str delim (get arr i))
                        (+ i 1))
                 str))))
-         "join = function (arr, delim) { return (function () { for (var str = arr[0],i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; } })(); }"))
+         "join = function (arr, delim) {  for (var str = arr[0], i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; }; }"))
 
   (is (= (js
           (defmacro boolean? [b] `(== "boolean" (typeof ~b)))
@@ -122,9 +133,7 @@
                   (console.log ex))
               (finally
                0))))
-
          "test = function () { try { return (5 / 0); } catch (ex) { return console.log(ex); } finally { return 0; }; }"))
-
   )
 
 ;; (run-tests 'clojurejs.tests)

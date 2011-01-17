@@ -192,6 +192,48 @@
         (print (str "   " line)))
       (print " */"))))
 
+(defn- ignorable-arg? [n]
+  (and (symbol? n) (.startsWith (name n) "_")))
+
+(def *temp-sym-count* nil)
+(defn tempsym []
+  (dosync
+   (ref-set *temp-sym-count* (+ 1 @*temp-sym-count*))
+   (symbol (str "_temp_" @*temp-sym-count*))))
+
+(defn- emit-simple-binding [vname val]
+  (emit (if (ignorable-arg? vname) (tempsym) vname))
+  (print " = ")
+  (binding [*inline-if* true]
+    (emit val)))
+
+(defn- emit-destructured-binding [vvec val]
+  (let [temp (tempsym)]
+    (print (str temp " = "))
+    (emit val)
+    (loop [vvec vvec
+           i 0]
+      (when (< i (count vvec))
+        (let [vname (get vvec i)]
+          (print ", ")
+          (if (= vname '&)
+            (emit-var-bindings (conj (subvec vvec (+ i 1)) `(.slice ~temp ~i)))
+            (do
+              (cond
+               (vector? vname) (emit-destructured-binding vname `(get ~temp ~i))
+               :else (emit-simple-binding vname `(get ~temp ~i)))
+              (recur vvec (+ i 1)))))))))
+
+(defn- emit-var-bindings [bindings]
+  (binding [*return-expr* false]
+    (emit-delimited ", "
+                    (partition 2 bindings)
+                    (fn [[vname val]]
+                      (if *in-block-exp* (newline-indent))
+                      (if (vector? vname) ; destructuring
+                        (emit-destructured-binding vname val)
+                        (emit-simple-binding vname val))))))
+
 (defn- emit-function [fdecl]
   (let [docstring (if (string? (first fdecl))
                     (first fdecl)
@@ -200,12 +242,24 @@
                     (rest fdecl)
                     fdecl)
         args      (first fdecl)
+        dargs?    (or (some vector? args)
+                      (contains? (set args) '&)
+                      (some ignorable-arg? args))
         body      (rest fdecl)]
     (assert-args fn
       (vector? args) "a vector for its bindings")
-    (print "function (")
-    (binding [*return-expr* false] (emit-delimited ", " args))
-    (print ") {")
+    (if dargs?
+      (do
+        (print "function () {")
+        (with-indent []
+          (newline-indent)
+          (print "var ")
+          (emit-var-bindings [args '(Array.prototype.slice.call arguments)])
+          (print ";")))
+      (do
+        (print "function (")
+        (binding [*return-expr* false] (emit-delimited ", " args))
+        (print ") {")))
     (with-indent []
       (when docstring
         (emit-docstring docstring))
@@ -213,20 +267,21 @@
     (newline-indent)
     (print "}")))
 
+(def *in-block-exp* false)
+(defmacro with-block [& body]
+  `(binding [*in-block-exp* true]
+     ~@body))
+
 (defmethod emit "fn" [[_ & fdecl]]
-  (emit-function fdecl))
+  (with-block (emit-function fdecl)))
 
 (defmethod emit "defn" [[_ name & fdecl]]
   (assert-args defn
     (symbol? name) "a symbol as its name")
   (emit-symbol name)
   (print " = ")
-  (emit-function fdecl))
-
-(def *in-block-exp* false)
-(defmacro with-block [& body]
-  `(binding [*in-block-exp* true]
-     ~@body))
+  (with-block
+    (emit-function fdecl)))
 
 (defmethod emit "if" [[_ test consequent & [alternate]]]
   (let [emit-inline-if (fn []
@@ -262,31 +317,29 @@
   (let [thunk (fn [] (doseq [expr exprs] (emit-statement expr)))]
     (binding [*return-expr* false]
       (if (not *in-block-exp*)
-        (with-parens [] (thunk))
+        (with-parens ["{" "}"] (thunk))
         (thunk)))))
 
-(defn- emit-var-bindings [bindings]
-  (emit-delimited ","
-                  (partition 2 bindings)
-                  (fn [[vname val]]
-                    (if *in-block-exp* (newline-indent))
-                    (emit vname)
-                    (print " = ")
-                    (binding [*inline-if* true]
-                      (emit val)))))
+(def *in-let-block* false)
 
 (defmethod emit "let" [[_ bindings & exprs]]
-  (with-return-expr []
-    (print "(function () {")
-    (with-indent []
-      (newline-indent)
-      (print "var ")
-      (with-indent []
-        (with-block (emit-var-bindings bindings))
-        (print ";"))
-      (emit-statements-with-return exprs))
-    (newline-indent)
-    (print " })()")))
+  (let [emit-var-decls (fn []
+                         (print "var ")
+                         (with-indent []
+                           (with-block (emit-var-bindings bindings))
+                           (print ";"))
+                         (emit-statements-with-return exprs))]
+    (if *in-let-block*
+      (with-return-expr []
+        (print "(function () {")
+        (with-indent []
+          (newline-indent)
+          (emit-var-decls)
+          (newline-indent)
+          (print " })()")))
+      (binding [*in-let-block* true
+                *return-expr* false]
+        (emit-var-decls)))))
 
 (defmethod emit "new" [[_ class & args]]
   (with-return-expr []
@@ -348,25 +401,31 @@
 
 (def *loop-vars* nil)
 (defmethod emit "loop" [[_ bindings & body]]
-  (with-return-expr []
-    (print "(function () {")
-    (with-indent []
-      (newline-indent)
-      (print "for (var ")
-      (binding [*return-expr* false
-                *in-block-exp* false]
-        (emit-var-bindings bindings))
-      (print "; true;) {")
-      (with-indent []
-        (binding [*loop-vars* (first (unzip bindings))]
-          (with-return-expr [true]
-            (emit-statements body)))
+  (let [emit-for-block (fn []
+                         (with-indent []
+                           (newline-indent)
+                           (print "for (var ")
+                           (binding [*return-expr* false
+                                     *in-block-exp* false]
+                             (emit-var-bindings bindings))
+                           (print "; true;) {")
+                           (with-indent []
+                             (binding [*loop-vars* (first (unzip bindings))]
+                               (with-return-expr [true]
+                                 (emit-statements body)))
+                             (newline-indent)
+                             (print "break;"))
+                           (newline-indent)
+                           (print "}")))]
+    (if *in-let-block*
+      (with-return-expr []
+        (print "(function () {")
+        (emit-for-block)
         (newline-indent)
-        (print "break;"))
-      (newline-indent)
-      (print "}"))
-    (newline-indent)
-    (print "})()")))
+        (print "})()"))
+      (binding [*in-let-block* true
+                *return-expr* false]
+        (emit-for-block)))))
 
 (defmethod emit "recur" [[_ & args]]
   (binding [*return-expr* false]
@@ -408,16 +467,20 @@
        (coll? expr) (emit-function-form expr)
        true (print expr)))))
 
+(defn emit-str [expr]
+  (with-out-str (emit expr)))
+
 (defn js-emit [expr] (emit expr))
 
 (defmacro js [& exprs]
   "Translate the Clojure subset `exprs' to a string of javascript
 code."
   (let [exprs# `(quote ~exprs)]
-    `(with-out-str
-       (if (< 1 (count ~exprs#))
-         (emit-statements ~exprs#)
-         (js-emit (first ~exprs#))))))
+    `(binding [*temp-sym-count* (ref 999)]
+       (with-out-str
+         (if (< 1 (count ~exprs#))
+           (emit-statements ~exprs#)
+           (js-emit (first ~exprs#)))))))
 
 (defmacro js-let [bindings & exprs]
   "Bind Clojure environment values to named vars of a cljs block, and
@@ -463,11 +526,12 @@ translate the Clojure subset `exprs' to a string of javascript code."
 (defn tojs [& scripts]
   "Load and translate the list of cljs scripts into javascript, and
 return as a string. Useful for translating an entire cljs script file."
-  (with-out-str
-    (doseq [f scripts]
-      (with-open [in (sexp-reader f)]
-        (loop [expr (read in false :eof)]
-          (when (not= expr :eof)
-            (if-let [s (emit-statement expr)]
-              (print s))
-            (recur (read in false :eof))))))))
+  (binding [*temp-sym-count* (ref 999)]
+    (with-out-str
+      (doseq [f scripts]
+        (with-open [in (sexp-reader f)]
+          (loop [expr (read in false :eof)]
+            (when (not= expr :eof)
+              (if-let [s (emit-statement expr)]
+                (print s))
+              (recur (read in false :eof)))))))))
