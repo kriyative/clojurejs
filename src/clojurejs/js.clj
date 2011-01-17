@@ -159,10 +159,10 @@
     (emit-statement expr)))
 
 (defn emit-statements-with-return [exprs]
-  (doseq [expr (butlast exprs)]
-    (emit-statement expr))
-  (binding [*return-expr* true]
-    (emit-statement (last exprs))))
+  (binding [*return-expr* false]
+    (doseq [expr (butlast exprs)]
+      (emit-statement expr)))
+  (emit-statement (last exprs)))
 
 (defmethod emit "def" [[_ name value]]
   (print "var ")
@@ -236,7 +236,6 @@
     (emit-delimited ", "
                     (partition 2 bindings)
                     (fn [[vname val]]
-                      (if *in-block-exp* (newline-indent))
                       (if (vector? vname) ; destructuring
                         (emit-destructured-binding vname val)
                         (emit-simple-binding vname val))))))
@@ -270,7 +269,8 @@
     (with-indent []
       (when docstring
         (emit-docstring docstring))
-      (emit-statements-with-return body))
+      (binding [*return-expr* true]
+        (emit-statements-with-return body)))
     (newline-indent)
     (print "}")))
 
@@ -327,7 +327,7 @@
 (defmethod emit "let" [[_ bindings & exprs]]
   (let [emit-var-decls (fn []
                          (print "var ")
-                         (with-indent []
+                         (binding [*return-expr* false]
                            (with-block (emit-var-bindings bindings))
                            (print ";"))
                          (emit-statements-with-return exprs))]
@@ -336,11 +336,11 @@
         (print "(function () {")
         (with-indent []
           (newline-indent)
-          (emit-var-decls)
-          (newline-indent)
-          (print " })()")))
-      (binding [*in-let-block* true
-                *return-expr* false]
+          (binding [*return-expr* true]
+            (emit-var-decls)))
+        (newline-indent)
+        (print " })()"))
+      (binding [*in-let-block* true]
         (emit-var-decls)))))
 
 (defmethod emit "new" [[_ class & args]]
