@@ -118,13 +118,28 @@ To get started:
 
 translates to the following Javascript:
 
-    test_fn = function(a) {
-         return (function () {
-             var
-                 b = (a + 1),
-                 c = (b + 1);
-             return (a + b + c);
-         })();
+    test_fn = function (a) {
+        var 
+            b = (a + 1), 
+            c = (b + 1);
+        return (a + b + c);;
+    }
+
+Function args, and let bindings can also be destructured, e.g.:
+
+    (js
+     (defn test-fn [num-list]
+       (let [[a b] num-list
+             c (+ b 1)]
+         (+ a b c))))
+
+which translates to:
+
+    test_fn = function (num_list) {
+        var 
+            _temp_1000 = num_list, a = _temp_1000[0], b = _temp_1000[1], 
+            c = (b + 1);
+        return (a + b + c);;
     }
 
 ## Macros
@@ -150,18 +165,17 @@ translates to the following Javascript:
 
 translates to the following Javascript:
 
-    join = function(arr, delim) {
-        return (function () {
-            for (var str = arr[0],i = 1; true;) {
+    join = function (arr, delim) {
+            for (var str = arr[0], i = 1; true;) {
                 if ((i < arr.length)) {
                     str = (str + delim + arr[i]);
                     i = (i + 1);
                     continue;
                 } else {
                     return str;
-                } break;
-            }
-        })();
+                };
+                break;
+            };
     }
 
 ## try/catch/finally
@@ -225,3 +239,15 @@ side.
 
 Invoking _(test)_ on the browser side would create and add the dom
 tree specified in the array structure to the document body.
+
+# Release notes
+
+* ver 1.2.0
+
+  - adds support for destructuring in `fn`, `defn`, and `let` forms
+
+  - a little optimization in `let` and `loop` forms, the outermost
+    `function` block is elided
+
+  - added a sample macro implementation of the `lvar` form, to add
+    local var declarations in the generated Javascript
