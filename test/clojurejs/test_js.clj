@@ -91,14 +91,16 @@
     
 (deftest loops
   (is (= (js
+          (defmacro count [x]
+           `(inline ~(str (clojurejs.js/emit-str x) ".length")))
           (defn join [arr delim]
             (loop [str (get arr 0)
                    i 1]
-              (if (< i (length arr))
+              (if (< i (count arr))
                 (recur (+ str delim (get arr i))
                        (+ i 1))
                 str))))
-         "join = function (arr, delim) { for (var str = arr[0], i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; }; }")))
+         " join = function (arr, delim) { for (var str = arr[0], i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; }; };")))
 
 (deftest inline-if
   (is (= (js

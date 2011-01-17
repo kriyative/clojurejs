@@ -360,11 +360,6 @@
     (emit key)
     (print "]")))
 
-(defmethod emit "length" [[_ expr]]
-  (with-return-expr []
-    (emit expr)
-    (print ".length")))
-
 (defmethod emit "set!" [[_ & apairs]]
   (binding [*return-expr* false]
     (let [apairs (partition 2 apairs)]
