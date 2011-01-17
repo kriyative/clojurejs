@@ -31,6 +31,11 @@
   `(binding [*indent* (+ *indent* (or ~increment 4))]
      ~@body))
 
+(def *in-block-exp* false)
+(defmacro with-block [& body]
+  `(binding [*in-block-exp* true]
+     ~@body))
+
 (defn- newline-indent []
   (if *print-pretty*
     (do
@@ -207,6 +212,8 @@
   (binding [*inline-if* true]
     (emit val)))
 
+(declare emit-var-bindings)
+
 (defn- emit-destructured-binding [vvec val]
   (let [temp (tempsym)]
     (print (str temp " = "))
@@ -266,11 +273,6 @@
       (emit-statements-with-return body))
     (newline-indent)
     (print "}")))
-
-(def *in-block-exp* false)
-(defmacro with-block [& body]
-  `(binding [*in-block-exp* true]
-     ~@body))
 
 (defmethod emit "fn" [[_ & fdecl]]
   (with-block (emit-function fdecl)))
