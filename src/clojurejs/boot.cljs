@@ -26,12 +26,19 @@
 (defmacro string? [s] `(== "string" (typeof ~s)))
 (defmacro number? [n] `(== "number" (typeof ~n)))
 (defmacro boolean? [b] `(== "boolean" (typeof ~b)))
-(defmacro str-join [sep seq] `(.join ~seq ~sep))
+(defmacro join [sep seq] `(.join ~seq ~sep))
 (defmacro str [& args] `(+ "" ~@args))
 (defmacro inc! [arg] `(set! ~arg (+ 1 ~arg)))
+(defmacro lvar [& bindings]
+  `(inline ~(str "var " 
+                 (clojure.string/join ","
+                                      (map (fn [[vname vval]]
+                                             (str vname " = "
+                                                  (clojurejs.js/emit-str vval)))
+                                           (partition 2 bindings))))))
 (defmacro doseq [[var seq] & body]
-  `(let [seq# ~seq
-         ~var nil]
+  `(do
+     (lvar seq# ~seq ~var nil)
      (loop [i# 0]
        (when (< i# (length seq#))
          (set! ~var (get seq# i#))
