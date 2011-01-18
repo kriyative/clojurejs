@@ -51,7 +51,12 @@
           (defn test []
             (let [a 1] (log (* a a)))
             (let [a 2] (log (* a a)))))
-         "test = function () { var a = 1; log((a * a));; var a = 2; return log((a * a));; }")))
+         "test = function () { var a = 1; log((a * a));; var a = 2; return log((a * a));; }"))
+  (is (= (js
+          (defn test []
+            (let [a 1] (log (* a a)))
+            (do (log "test") (+ 1 1))))
+         "test = function () { var a = 1; log((a * a));;  log(\"test\"); return (1 + 1);; }")))
 
 (deftest let-destructuring
   (is (= (js
@@ -71,7 +76,12 @@
   (is (= (js
           (defn test [[a b & r]]
             [(+ a b) r]))
-         "test = function () { var _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], a = _temp_1001[0], b = _temp_1001[1], r = _temp_1001.slice(2); return [(a + b),r]; }")))
+         "test = function () { var _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], a = _temp_1001[0], b = _temp_1001[1], r = _temp_1001.slice(2); return [(a + b),r]; }"))
+
+  (is (= (js
+          (defn test [a b & r]
+            [(+ a b) r]))
+         "test = function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], b = _temp_1000[1], r = _temp_1000.slice(2); return [(a + b),r]; }")))
 
 (deftest macros
   (is (= (js
@@ -88,7 +98,7 @@
                 (recur (+ str delim (get arr i))
                        (+ i 1))
                 str))))
-         "join = function (arr, delim) {  for (var str = arr[0], i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; }; }")))
+         "join = function (arr, delim) { for (var str = arr[0], i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; }; }")))
 
 (deftest inline-if
   (is (= (js

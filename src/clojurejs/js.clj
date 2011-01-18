@@ -316,11 +316,7 @@
       (emit-block-if))))
 
 (defmethod emit "do" [[_ & exprs]]
-  (let [thunk (fn [] (doseq [expr exprs] (emit-statement expr)))]
-    (binding [*return-expr* false]
-      (if (not *in-block-exp*)
-        (with-parens ["{" "}"] (thunk))
-        (thunk)))))
+  (emit-statements-with-return exprs))
 
 (def *in-let-block* false)
 
@@ -404,25 +400,25 @@
 (def *loop-vars* nil)
 (defmethod emit "loop" [[_ bindings & body]]
   (let [emit-for-block (fn []
+                         (print "for (var ")
+                         (binding [*return-expr* false
+                                   *in-block-exp* false]
+                           (emit-var-bindings bindings))
+                         (print "; true;) {")
                          (with-indent []
+                           (binding [*loop-vars* (first (unzip bindings))]
+                             (with-return-expr [true]
+                               (emit-statements body)))
                            (newline-indent)
-                           (print "for (var ")
-                           (binding [*return-expr* false
-                                     *in-block-exp* false]
-                             (emit-var-bindings bindings))
-                           (print "; true;) {")
-                           (with-indent []
-                             (binding [*loop-vars* (first (unzip bindings))]
-                               (with-return-expr [true]
-                                 (emit-statements body)))
-                             (newline-indent)
-                             (print "break;"))
-                           (newline-indent)
-                           (print "}")))]
+                           (print "break;"))
+                         (newline-indent)
+                         (print "}"))]
     (if *in-let-block*
       (with-return-expr []
         (print "(function () {")
-        (emit-for-block)
+        (with-indent []
+          (newline-indent)
+          (emit-for-block))
         (newline-indent)
         (print "})()"))
       (binding [*in-let-block* true
