@@ -356,9 +356,12 @@
 (defmethod emit "get" [[_ map key]]
   (with-return-expr []
     (emit map)
-    (print "[")
-    (emit key)
-    (print "]")))
+    (if (and (symbol? key) (.startsWith (name key) "."))
+      (emit key)
+      (do
+        (print "[")
+        (emit key)
+        (print "]")))))
 
 (defmethod emit "set!" [[_ & apairs]]
   (binding [*return-expr* false]

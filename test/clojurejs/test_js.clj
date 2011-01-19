@@ -58,6 +58,14 @@
             (do (log "test") (+ 1 1))))
          "test = function () { var a = 1; log((a * a));;  log(\"test\"); return (1 + 1);; }")))
 
+(deftest property-access
+  (is (= (js (get map :key))
+         "map['key']"))
+  (is (= (js (:key map))
+         "map['key']"))
+  (is (= (js (get map .key))
+         "map.key")))
+
 (deftest let-destructuring
   (is (= (js
           (defn test []
