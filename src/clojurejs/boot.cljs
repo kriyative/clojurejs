@@ -10,6 +10,8 @@
  `(inline ~(str (clojurejs.js/emit-str x) ".length")))
 (defmacro empty? [s] `(or (nil? ~s) (= 0 (count ~s) 0)))
 (defmacro not-empty? [s] `(and ~s (> (count ~s) 0)))
+(defmacro contains? [m k]
+  `(inline ~(str (clojurejs.js/emit-str k) " in " (clojurejs.js/emit-str m))))
 (defmacro not [expr] `(! ~expr))
 (defmacro not= [expr1 expr2] `(!= ~expr1 ~expr2))
 (defmacro when [pred & body] `(if ~pred (do ~@body)))

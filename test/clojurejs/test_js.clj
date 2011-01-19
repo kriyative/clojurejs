@@ -1,4 +1,4 @@
-;;; tests.clj -- unit tests for clojurejs
+;;; tests_js.clj -- unit tests for clojurejs language core
 
 ;; Ram Krishnan, http://cynojure.posterous.com/
 
@@ -167,5 +167,3 @@
              (symbol? a) "yes"
              (number? a) "no")))
          " test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; }; }; };")))
-
-;; (run-tests 'clojurejs.tests)
