@@ -50,7 +50,7 @@
      (print (or ~right ")"))))
 
 (defn- jskey [x]
-  (let [x (if (and (coll? x) (not (empty? x))) (first x) x)]
+  (let [x (if (and (coll? x) (seq x)) (first x) x)]
     (if (symbol? x) (name x) x)))
 
 (defmulti emit "Emit a javascript expression." {:private true} jskey)

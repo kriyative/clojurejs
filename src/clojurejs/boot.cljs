@@ -8,8 +8,8 @@
 (defmacro nil? [expr] `(== nil ~expr))
 (defmacro count [x]
  `(inline ~(str (clojurejs.js/emit-str x) ".length")))
-(defmacro empty? [s] `(or (nil? ~s) (>= 0 (count ~s))))
-(defmacro not-empty? [s] `(and ~s (< 0 (count ~s))))
+(defmacro empty? [s] `(or (nil? ~s) (= 0 (count ~s) 0)))
+(defmacro not-empty? [s] `(and ~s (> (count ~s) 0)))
 (defmacro not [expr] `(! ~expr))
 (defmacro not= [expr1 expr2] `(!= ~expr1 ~expr2))
 (defmacro when [pred & body] `(if ~pred (do ~@body)))
@@ -33,12 +33,12 @@
 (defmacro str [& args] `(+ "" ~@args))
 (defmacro inc! [arg] `(set! ~arg (+ 1 ~arg)))
 (defmacro lvar [& bindings]
-  `(inline ~(str "var " 
-                 (clojure.string/join ","
-                                      (map (fn [[vname vval]]
-                                             (str vname " = "
-                                                  (clojurejs.js/emit-str vval)))
-                                           (partition 2 bindings))))))
+  `(inline
+    ~(str "var "
+          (clojure.string/join ","
+            (map (fn [[vname vval]]
+                   (str vname " = " (clojurejs.js/emit-str vval)))
+                 (partition 2 bindings))))))
 (defmacro doseq [[var seq] & body]
   `(do
      (lvar seq# ~seq ~var nil)
