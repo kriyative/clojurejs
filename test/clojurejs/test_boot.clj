@@ -14,6 +14,12 @@
   (:use [clojure.test :only [deftest is]])
   (:use clojurejs.js))
 
+(deftest variables
+  (is (= (js
+           (lvar x 0)
+           (set! x (+ x 1)))
+         "var x = 0; x = (x + 1);")))
+
 (deftest datastructures
   (is (= (js (contains? {:a 1} :a))
          "'a' in {'a': 1}")))
