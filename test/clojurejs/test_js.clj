@@ -14,6 +14,8 @@
   (:use [clojure.test :only [deftest is]])
   (:use clojurejs.js))
 
+(tojs "src/clojurejs/boot.cljs")
+
 (deftest literals
   (is (= (js *print-pretty*) "__print_pretty__"))
   (is (= (js number?) "numberp"))
@@ -100,9 +102,8 @@
 
 (deftest macros
   (is (= (js
-          (defmacro nil? [x] `(== nil ~x))
           (if (nil? a) (print "is null")))
-         " if ((null == a)) { print(\"is null\"); };")))
+         "if ((null == a)) { print(\"is null\"); }")))
     
 (deftest loops
   (is (= (js
@@ -138,37 +139,20 @@
 
 (deftest combo
   (is (= (js
-          (defmacro boolean? [b] `(== "boolean" (typeof ~b)))
-          (defmacro string? [s] `(== "string" (typeof ~s)))
-          (defmacro first [x] `(get ~x 0))
           (defn test [a] (if (! (or (boolean? a) (string? a))) (first a))))
-         " test = function (a) { if (!((\"boolean\" == typeof(a)) || (\"string\" == typeof(a)))) { return a[0]; }; };"))
+         "test = function (a) { if (!((\"boolean\" == typeof(a)) || (\"string\" == typeof(a)))) { return a[0]; }; }"))
 
   (is (= (js
-          (defmacro number? [n] `(== "number" (typeof ~n)))
-          (defmacro cond [& [pred consequent & alternates]]
-            (if (coll? alternates)
-              (if (= (first alternates) :else)
-                `(if ~pred ~consequent ~(second alternates))
-                `(if ~pred ~consequent (cond ~@alternates)))
-              `(if ~pred ~consequent)))
           (defn test [a]
             (cond
              (symbol? a) "yes"
              (number? a) "no"
              :else "don't know")))
-         " test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; } else { return \"don't know\"; }; }; };"))
+         "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; } else { return \"don't know\"; }; }; }"))
 
   (is (= (js
-          (defmacro number? [n] `(== "number" (typeof ~n)))
-          (defmacro cond [& [pred consequent & alternates]]
-            (if (coll? alternates)
-              (if (= (first alternates) :else)
-                `(if ~pred ~consequent ~(second alternates))
-                `(if ~pred ~consequent (cond ~@alternates)))
-              `(if ~pred ~consequent)))
           (defn test [a]
             (cond
              (symbol? a) "yes"
              (number? a) "no")))
-         " test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; }; }; };")))
+         "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; }; }; }")))
