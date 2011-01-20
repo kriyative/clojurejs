@@ -53,6 +53,19 @@
   (let [x (if (and (coll? x) (seq x)) (first x) x)]
     (if (symbol? x) (name x) x)))
 
+(defn- dotsymbol? [s]
+  (and (symbol? s) (.startsWith (name s) ".")))
+
+(declare emit-str)
+
+(defn- sym->property [s]
+  "Transforms symbol or keyword into property access form."
+  (binding [*quoted* true]
+    (emit-str
+      (if (dotsymbol? s)
+        (symbol (subs (name s) 1))
+        s))))
+
 (defmulti emit "Emit a javascript expression." {:private true} jskey)
 
 (defn- emit-delimited [delimiter args & [emitter]]
@@ -353,15 +366,31 @@
   (with-return-expr []
     (print "null")))
 
-(defmethod emit "get" [[_ map key]]
-  (with-return-expr []
-    (emit map)
-    (if (and (symbol? key) (.startsWith (name key) "."))
-      (emit key)
-      (do
-        (print "[")
-        (emit key)
-        (print "]")))))
+(defmethod emit "get" [args]
+  (let [[_ map key default]  args
+        default? (> (count args) 3)
+        emit-get
+          (fn []
+            (emit map)
+            (if (dotsymbol? key)
+              (emit key)
+              (do
+                (print "[")
+                (emit key)
+                (print "]"))))]
+    (with-return-expr []
+      (if default?
+        ;; FIXME Should be able to re-use code for
+        ;; inline if and contains? macro here.
+        (with-parens []
+          (print (sym->property key))
+          (print " in ")
+          (emit map)
+          (print " ? ")
+          (emit-get)
+          (print " : ")
+          (emit default))
+        (emit-get)))))
 
 (defmethod emit "set!" [[_ & apairs]]
   (binding [*return-expr* false]
