@@ -101,18 +101,18 @@
     (emit-symbol expr)))
 
 (defn- unary-operator? [op]
-  (boolean (and (symbol? op) (#{"++" "--" "!"} (name op)))))
+  (and (symbol? op) (contains? #{"++" "--" "!"} (name op))))
 
 (defn- emit-unary-operator [op arg]
   (print (name op))
   (emit arg))
 
 (defn- infix-operator? [op]
-  (boolean (and (symbol? op)
-                 (#{"and" "or" "+" "-" "/" "*" "%"
+  (and (symbol? op)
+       (contains? #{"and" "or" "+" "-" "/" "*" "%"
                     ">" ">=" "<" "<=" "==" "===" "!=" "!=="
                     "instanceof"}
-                  (name op)))))
+                  (name op))))
 
 (defn- emit-infix-operator [op & args]
   (let [lisp->js {"and" "&&"
