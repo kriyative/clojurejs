@@ -225,9 +225,16 @@
   (binding [*inline-if* true]
     (emit val)))
 
-(declare emit-var-bindings)
+(declare emit-var-bindings
+         emit-destructured-seq-binding)
 
-(defn- emit-destructured-binding [vvec val]
+(defn- emit-binding [vname val]
+  (let [emitter (cond
+                  (vector? vname) emit-destructured-seq-binding
+                  :else           emit-simple-binding)]
+    (emitter vname val)))
+
+(defn- emit-destructured-seq-binding [vvec val]
   (let [temp (tempsym)]
     (print (str temp " = "))
     (emit val)
@@ -239,19 +246,16 @@
           (if (= vname '&)
             (emit-var-bindings (conj (subvec vvec (+ i 1)) `(.slice ~temp ~i)))
             (do
-              (cond
-               (vector? vname) (emit-destructured-binding vname `(get ~temp ~i))
-               :else (emit-simple-binding vname `(get ~temp ~i)))
+              (emit-binding vname `(get ~temp ~i))
               (recur vvec (+ i 1)))))))))
 
 (defn- emit-var-bindings [bindings]
   (binding [*return-expr* false]
-    (emit-delimited ", "
-                    (partition 2 bindings)
-                    (fn [[vname val]]
-                      (if (vector? vname) ; destructuring
-                        (emit-destructured-binding vname val)
-                        (emit-simple-binding vname val))))))
+    (emit-delimited
+      ", "
+      (partition 2 bindings)
+      (fn [[vname val]]
+        (emit-binding vname val)))))
 
 (defn- emit-function [fdecl]
   (let [docstring (if (string? (first fdecl))
