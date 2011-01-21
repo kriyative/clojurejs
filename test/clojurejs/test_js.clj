@@ -112,6 +112,10 @@
            (fn [[{x :x, {z :z} :y}]] z))
          "function () { var _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], _temp_1002 = _temp_1001[0], x = _temp_1002['x'], _temp_1003 = _temp_1002['y'], z = _temp_1003['z']; return z; }"))
 
+  (is (= (js
+           (fn [x {y :y, z :z :or {y 1, z "foo"}}] z))
+"function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], y = ('y' in _temp_1001 ? _temp_1001['y'] : 1), z = ('z' in _temp_1001 ? _temp_1001['z'] : \"foo\"); return z; }"))
+
   (is (thrown-with-msg? Exception #"& must be followed"
       (js
         (fn [x y & {z :z}] z))))

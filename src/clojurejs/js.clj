@@ -274,7 +274,9 @@
                 (recur (next vseq) (inc i) seen-rest?))))))))
 
 (defn- emit-destructured-map-binding [vmap val]
-  (let [temp     (tempsym)]
+  (let [temp     (tempsym)
+        defaults (get vmap :or)
+        vmap     (dissoc vmap :or)]
     (print (str temp " = "))
     (emit val)
     (doseq [[vname vkey] vmap]
@@ -285,9 +287,9 @@
           (throw (Exception. "Unsupported binding form, binding symbols must be followed by keywords or numbers"))
 
         :else
-            (emit-binding vname `(get ~temp ~vkey))))))
-
-
+          (if-let [[_ default] (find defaults vname)]
+            (emit-binding vname `(get ~temp ~vkey ~default))
+            (emit-binding vname `(get ~temp ~vkey)))))))
 
 (defn- emit-var-bindings [bindings]
   (binding [*return-expr* false]
