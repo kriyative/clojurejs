@@ -103,6 +103,18 @@
   (is (= (js
            (fn [a [b] [c d & e :as f] :as g] nil))
         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], _temp_1001 = _temp_1000[1], b = _temp_1001[0], _temp_1002 = _temp_1000[2], c = _temp_1002[0], d = _temp_1002[1], e = _temp_1002.slice(2), f = _temp_1002, g = _temp_1000; return null; }")) 
+
+  (is (= (js
+           (fn [x {y :y, fred :fred}] fred))
+          "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], y = _temp_1001['y'], fred = _temp_1001['fred']; return fred; }"))
+
+  (is (= (js
+           (fn [[{x :x, {z :z} :y}]] z))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], _temp_1002 = _temp_1001[0], x = _temp_1002['x'], _temp_1003 = _temp_1002['y'], z = _temp_1003['z']; return z; }"))
+
+  (is (thrown-with-msg? Exception #"& must be followed"
+      (js
+        (fn [x y & {z :z}] z))))
 )
 
 (deftest macros

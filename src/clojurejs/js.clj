@@ -226,10 +226,11 @@
     (emit val)))
 
 (declare emit-var-bindings
-         emit-destructured-seq-binding)
+         emit-destructured-seq-binding
+         emit-destructured-map-binding)
 
 (defn- destructuring-form? [form]
-  (vector? form))
+  (or (map? form) (vector? form)))
 
 (defn- binding-form? [form]
   (or (symbol? form) (destructuring-form? form)))
@@ -240,6 +241,7 @@
 (defn- emit-binding [vname val]
   (let [emitter (cond
                   (vector? vname) emit-destructured-seq-binding
+                  (map? vname)    emit-destructured-map-binding
                   :else           emit-simple-binding)]
     (emitter vname val)))
 
@@ -270,6 +272,22 @@
                     (emit-binding vval temp))
             (do (emit-binding vname `(get ~temp ~i))
                 (recur (next vseq) (inc i) seen-rest?))))))))
+
+(defn- emit-destructured-map-binding [vmap val]
+  (let [temp     (tempsym)]
+    (print (str temp " = "))
+    (emit val)
+    (doseq [[vname vkey] vmap]
+      (print ", ")
+      (cond
+        (not (and (binding-form? vname)
+                  (or (keyword? vkey) (number? vkey))))
+          (throw (Exception. "Unsupported binding form, binding symbols must be followed by keywords or numbers"))
+
+        :else
+            (emit-binding vname `(get ~temp ~vkey))))))
+
+
 
 (defn- emit-var-bindings [bindings]
   (binding [*return-expr* false]
