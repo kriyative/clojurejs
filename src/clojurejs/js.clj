@@ -228,6 +228,15 @@
 (declare emit-var-bindings
          emit-destructured-seq-binding)
 
+(defn- destructuring-form? [form]
+  (vector? form))
+
+(defn- binding-form? [form]
+  (or (symbol? form) (destructuring-form? form)))
+
+(defn- binding-special? [form]
+  (contains? #{'& :as} form))
+
 (defn- emit-binding [vname val]
   (let [emitter (cond
                   (vector? vname) emit-destructured-seq-binding
@@ -238,16 +247,29 @@
   (let [temp (tempsym)]
     (print (str temp " = "))
     (emit val)
-    (loop [vvec vvec
-           i 0]
+    (loop [i 0, seen-rest? false]
       (when (< i (count vvec))
         (let [vname (get vvec i)]
           (print ", ")
-          (if (= vname '&)
-            (emit-var-bindings (conj (subvec vvec (+ i 1)) `(.slice ~temp ~i)))
-            (do
-              (emit-binding vname `(get ~temp ~i))
-              (recur vvec (+ i 1)))))))))
+          (condp = vname
+            '&  (cond
+                  seen-rest?
+                    (throw (Exception. "Unsupported binding form, only :as can follow &"))
+                  (not (symbol? (get vvec (inc i))))
+                    (throw (Exception. "Unsupported binding form, & must be followed by exactly one symbol"))
+                  :else
+                    (do (emit-var-bindings [(nth vvec (inc i)) `(.slice ~temp ~i)])
+                        (recur (+ i 2) true)))
+            :as (let [as-binding (get vvec (inc i) nil)]
+                  (cond
+                    (> (count vvec) (+ i 2))
+                      (throw (Exception. "Unsupported binding form, nothing must follow after :as <binding>"))
+                    (not (symbol? as-binding))
+                      (throw (Exception. "Unsupported binding form, :as must be followed by a symbol"))
+                    :else
+                      (emit-var-bindings [(nth vvec (inc i)) temp])))
+            (do (emit-binding vname `(get ~temp ~i))
+                (recur (inc i) seen-rest?))))))))
 
 (defn- emit-var-bindings [bindings]
   (binding [*return-expr* false]
@@ -265,8 +287,8 @@
                     (rest fdecl)
                     fdecl)
         args      (first fdecl)
-        dargs?    (or (some vector? args)
-                      (contains? (set args) '&)
+        dargs?    (or (some destructuring-form? args)
+                      (some binding-special? args)
                       (some ignorable-arg? args))
         body      (rest fdecl)]
     (assert-args fn

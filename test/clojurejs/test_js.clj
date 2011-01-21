@@ -75,7 +75,7 @@
   (is (= (js (get map .key default))
          "('key' in map ? map.key : default)")))
 
-(deftest let-destructuring
+(deftest destructuring
   (is (= (js
           (defn test []
             (let [a 1
@@ -98,7 +98,12 @@
   (is (= (js
           (defn test [a b & r]
             [(+ a b) r]))
-         "test = function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], b = _temp_1000[1], r = _temp_1000.slice(2); return [(a + b),r]; }")))
+         "test = function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], b = _temp_1000[1], r = _temp_1000.slice(2); return [(a + b),r]; }"))
+
+  (is (= (js
+           (fn [a [b] [c d & e :as f] :as g] nil))
+        "function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], _temp_1001 = _temp_1000[1], b = _temp_1001[0], _temp_1002 = _temp_1000[2], c = _temp_1002[0], d = _temp_1002[1], e = _temp_1002.slice(2), f = _temp_1002, g = _temp_1000; return null; }")) 
+)
 
 (deftest macros
   (is (= (js
