@@ -247,29 +247,29 @@
   (let [temp (tempsym)]
     (print (str temp " = "))
     (emit val)
-    (loop [i 0, seen-rest? false]
-      (when (< i (count vvec))
-        (let [vname (get vvec i)]
+    (loop [vseq vvec, i 0, seen-rest? false]
+      (when (seq vseq)
+        (let [vname (first vseq)
+              vval  (second vseq)]
           (print ", ")
           (condp = vname
             '&  (cond
                   seen-rest?
                     (throw (Exception. "Unsupported binding form, only :as can follow &"))
-                  (not (symbol? (get vvec (inc i))))
+                  (not (symbol? vval))
                     (throw (Exception. "Unsupported binding form, & must be followed by exactly one symbol"))
                   :else
-                    (do (emit-var-bindings [(nth vvec (inc i)) `(.slice ~temp ~i)])
-                        (recur (+ i 2) true)))
-            :as (let [as-binding (get vvec (inc i) nil)]
-                  (cond
-                    (> (count vvec) (+ i 2))
-                      (throw (Exception. "Unsupported binding form, nothing must follow after :as <binding>"))
-                    (not (symbol? as-binding))
-                      (throw (Exception. "Unsupported binding form, :as must be followed by a symbol"))
-                    :else
-                      (emit-var-bindings [(nth vvec (inc i)) temp])))
+                    (do (emit-var-bindings [vval `(.slice ~temp ~i)])
+                        (recur (nnext vseq) (inc i) true)))
+            :as (cond
+                  (not= (count (nnext vseq)) 0)
+                    (throw (Exception. "Unsupported binding form, nothing must follow after :as <binding>"))
+                  (not (symbol? vval))
+                    (throw (Exception. "Unsupported binding form, :as must be followed by a symbol"))
+                  :else
+                    (emit-var-bindings [vval temp]))
             (do (emit-binding vname `(get ~temp ~i))
-                (recur (inc i) seen-rest?))))))))
+                (recur (next vseq) (inc i) seen-rest?))))))))
 
 (defn- emit-var-bindings [bindings]
   (binding [*return-expr* false]
