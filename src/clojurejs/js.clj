@@ -259,7 +259,7 @@
                   (not (symbol? vval))
                     (throw (Exception. "Unsupported binding form, & must be followed by exactly one symbol"))
                   :else
-                    (do (emit-var-bindings [vval `(.slice ~temp ~i)])
+                    (do (emit-binding vval `(.slice ~temp ~i))
                         (recur (nnext vseq) (inc i) true)))
             :as (cond
                   (not= (count (nnext vseq)) 0)
@@ -267,7 +267,7 @@
                   (not (symbol? vval))
                     (throw (Exception. "Unsupported binding form, :as must be followed by a symbol"))
                   :else
-                    (emit-var-bindings [vval temp]))
+                    (emit-binding vval temp))
             (do (emit-binding vname `(get ~temp ~i))
                 (recur (next vseq) (inc i) seen-rest?))))))))
 
@@ -299,7 +299,7 @@
         (with-indent []
           (newline-indent)
           (print "var ")
-          (emit-var-bindings [args '(Array.prototype.slice.call arguments)])
+          (emit-binding args '(Array.prototype.slice.call arguments))
           (print ";")))
       (do
         (print "function (")
