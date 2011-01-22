@@ -276,14 +276,19 @@
 (defn- emit-destructured-map-binding [vmap val]
   (let [temp     (tempsym)
         defaults (get vmap :or)
-        vmap     (dissoc vmap :or)]
+        keysmap  (->> vmap
+                   ((juxt :keys :strs :syms))
+                   (apply concat)
+                   (mapcat #(vector % (keyword %)))
+                   (apply hash-map))
+        vmap     (merge (dissoc vmap :or :keys :strs :syms) keysmap)]
     (print (str temp " = "))
     (emit val)
     (doseq [[vname vkey] vmap]
       (print ", ")
       (cond
         (not (and (binding-form? vname)
-                  (or (keyword? vkey) (number? vkey))))
+                  (or (some #(% vkey) #{keyword? number? binding-form?}))))
           (throw (Exception. "Unsupported binding form, binding symbols must be followed by keywords or numbers"))
 
         :else
