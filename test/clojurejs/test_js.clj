@@ -123,11 +123,11 @@
   ; :keys, :strs
   (is (= (js
            (fn [x {y :y, z :z :keys [a b]}] z))
-         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], b = _temp_1001['b'], a = _temp_1001['a'], y = _temp_1001['y'], z = _temp_1001['z']; return z; }"))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], a = _temp_1001['a'], b = _temp_1001['b'], y = _temp_1001['y'], z = _temp_1001['z']; return z; }"))
 
   (is (= (js
            (fn [x {y :y, z :z :strs [a b]}] z))
-         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], b = _temp_1001['b'], a = _temp_1001['a'], y = _temp_1001['y'], z = _temp_1001['z']; return z; }"))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], a = _temp_1001['a'], b = _temp_1001['b'], y = _temp_1001['y'], z = _temp_1001['z']; return z; }"))
   ; defaults
   (is (= (js
            (fn [x {y :y, z :z :or {y 1, z "foo"}}] z))
@@ -135,7 +135,7 @@
 
   (is (= (js
            (fn [x {y :y, z :z :keys [a b] :or {a 1, y :bleh}}] z))
-           "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], b = _temp_1001['b'], a = ('a' in _temp_1001 ? _temp_1001['a'] : 1), y = ('y' in _temp_1001 ? _temp_1001['y'] : 'bleh'), z = _temp_1001['z']; return z; }"))
+           "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], a = ('a' in _temp_1001 ? _temp_1001['a'] : 1), b = _temp_1001['b'], y = ('y' in _temp_1001 ? _temp_1001['y'] : 'bleh'), z = _temp_1001['z']; return z; }"))
 
   ; unsupported for now
   (is (thrown-with-msg? Exception #"& must be followed by"

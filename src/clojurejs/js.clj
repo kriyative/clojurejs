@@ -276,11 +276,9 @@
 (defn- emit-destructured-map-binding [vmap val]
   (let [temp     (tempsym)
         defaults (get vmap :or)
-        keysmap  (->> vmap
-                   ((juxt :keys :strs :syms))
-                   (apply concat)
-                   (mapcat #(vector % (keyword %)))
-                   (apply hash-map))
+        keysmap  (reduce #(assoc %1 %2 (keyword %2))
+                  {}
+                  (mapcat vmap [:keys :strs :syms]))
         vmap     (merge (dissoc vmap :or :keys :strs :syms) keysmap)]
     (print (str temp " = "))
     (emit val)
