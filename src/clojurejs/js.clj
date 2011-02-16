@@ -496,7 +496,7 @@
           (newline-indent)
           (emit-for-block))
         (newline-indent)
-        (print "})()"))
+        (print "}).call(this)"))
       (binding [*in-let-block* true
                 *return-expr* false]
         (emit-for-block)))))
