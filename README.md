@@ -125,7 +125,9 @@ translates to the following Javascript:
         return (a + b + c);;
     }
 
-Function args, and let bindings can also be destructured, e.g.:
+## Destructuring
+
+Function args and let bindings can be destructured, e.g.:
 
     (js
      (defn test-fn [num-list]
@@ -141,6 +143,30 @@ which translates to:
             c = (b + 1);
         return (a + b + c);;
     }
+
+Map destructuring (aka associative destructuring) allows to bind the properties
+of a JavaScript object to names, including ``:keys`` syntax and defaults for missing
+keys (using ``:or``). For example:
+
+    (js
+     (defn test-fn [square]
+       (let [{:keys [x1 y1 x2 y2]} square
+             area (* (- x2 x1) (- y2 y1))]
+         (do-stuff area))))
+
+becomes:
+
+    test_fn = function (square) {
+        var
+	    _temp_1000 = square,
+	    x1 = _temp_1000['x1'], x2 = _temp_1000['x2'],
+	    y1 = _temp_1000['y1'], y2 = _temp_1000['y2'],
+	    area = ((x2 - x1) * (y2 - y1));
+    return do_stuff(area);;
+
+
+When destructuring an array, aliasing the whole array with ``:as`` works
+the same as in Clojure. Destructuring bindings may be nested arbitrarily.
 
 ## Macros
 
