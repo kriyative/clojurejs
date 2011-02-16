@@ -78,6 +78,15 @@
         (recur r (+ i 1)))
       r)))
 
+(defn merge [m1 m2]
+  "Merge the contents of map `m2' into map `m1' and return a new map."
+  (or (and m2
+           (let [m {}]
+             (dokeys [k m1] (if (.hasOwnProperty m1 k) (set! (get m k) (get m1 k))))
+             (dokeys [k m2] (if (.hasOwnProperty m2 k) (set! (get m k) (get m2 k))))
+             m))
+      m1))
+
 (defn html-set-attrs [el attrs]
   (dokeys [k attrs] (.setAttribute el k (get attrs k))))
 
