@@ -141,6 +141,7 @@
                              (or ~new-val false))]
      ~@body))  
 
+(def *in-fn-toplevel* true)
 (defn- emit-function-form [form]
   (binding [*inline-if* true
             *in-fn-toplevel* false]
@@ -380,8 +381,6 @@
 
 (defmethod emit "do" [[_ & exprs]]
   (emit-statements-with-return exprs))
-
-(def *in-fn-toplevel* true)
 
 (defmethod emit "let" [[_ bindings & exprs]]
   (let [emit-var-decls (fn []
