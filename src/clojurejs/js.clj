@@ -142,7 +142,8 @@
      ~@body))  
 
 (defn- emit-function-form [form]
-  (binding [*inline-if* true]
+  (binding [*inline-if* true
+            *in-fn-toplevel* false]
     (let [[fun & args] form
           method? (fn [f] (and (symbol? f) (= \. (first (name f)))))
           invoke-method (fn [[sel recvr & args]]
@@ -380,7 +381,7 @@
 (defmethod emit "do" [[_ & exprs]]
   (emit-statements-with-return exprs))
 
-(def *in-let-block* false)
+(def *in-fn-toplevel* true)
 
 (defmethod emit "let" [[_ bindings & exprs]]
   (let [emit-var-decls (fn []
@@ -389,7 +390,7 @@
                            (with-block (emit-var-bindings bindings))
                            (print ";"))
                          (emit-statements-with-return exprs))]
-    (if *in-let-block*
+    (if-not *in-fn-toplevel*
       (with-return-expr []
         (print "(function () {")
         (with-indent []
@@ -398,7 +399,7 @@
             (emit-var-decls)))
         (newline-indent)
         (print " }).call(this)"))
-      (binding [*in-let-block* true]
+      (binding [*in-fn-toplevel* false]
         (emit-var-decls)))))
 
 (defmethod emit "new" [[_ class & args]]
@@ -489,7 +490,7 @@
                            (print "break;"))
                          (newline-indent)
                          (print "}"))]
-    (if *in-let-block*
+    (if-not *in-fn-toplevel*
       (with-return-expr []
         (print "(function () {")
         (with-indent []
@@ -497,7 +498,7 @@
           (emit-for-block))
         (newline-indent)
         (print "}).call(this)"))
-      (binding [*in-let-block* true
+      (binding [*in-fn-toplevel* false
                 *return-expr* false]
         (emit-for-block)))))
 
