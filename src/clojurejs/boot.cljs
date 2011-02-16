@@ -78,8 +78,9 @@
         (recur r (+ i 1)))
       r)))
 
-(defn merge [m1 m2]
+(defn merge
   "Merge the contents of map `m2' into map `m1' and return a new map."
+  [m1 m2]
   (or (and m2
            (let [m {}]
              (dokeys [k m1] (if (.hasOwnProperty m1 k) (set! (get m k) (get m1 k))))
