@@ -397,7 +397,7 @@
           (binding [*return-expr* true]
             (emit-var-decls)))
         (newline-indent)
-        (print " })()"))
+        (print " }).call(this)"))
       (binding [*in-let-block* true]
         (emit-var-decls)))))
 
