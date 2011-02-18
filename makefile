@@ -1,5 +1,7 @@
-default:
-	lein jar
+default: jar
+
+test jar::
+	lein $@
 
 push: clean
 	lein jar
