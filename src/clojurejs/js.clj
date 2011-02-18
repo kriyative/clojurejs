@@ -192,7 +192,7 @@
 (defn- get-macro [n] (and (symbol? n) (get @*macros* (name n))))
 (defn- undef-macro [n]
   (when (macro? n)
-    (println "// undefining macro" n)
+    (when *print-pretty* (println "// undefining macro" n))
     (dosync (alter *macros* dissoc (name n)))))
 
 (defmethod emit "defmacro" [[_ mname args & body]]
