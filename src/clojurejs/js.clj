@@ -18,7 +18,7 @@
 
 (defn- re? [expr] (= (class expr) java.util.regex.Pattern))
 
-(def *inline-if* false) 
+(def *inline-if* true) 
 (def *quoted* false)
 
 (def *print-pretty* false)
@@ -77,16 +77,18 @@
 
 (defn- emit-map [expr]
   (with-parens ["{" "}"]
-    (emit-delimited ","
-                    (seq expr)
-                    (fn [[key val]]
-                      (emit key)
-                      (print " : ")
-                      (emit val)))))
+    (binding [*inline-if* true]
+      (emit-delimited ","
+                      (seq expr)
+                      (fn [[key val]]
+                        (emit key)
+                        (print " : ")
+                        (emit val))))))
 
 (defn- emit-vector [expr]
   (with-parens ["[" "]"]
-    (emit-delimited "," (seq expr))))
+    (binding [*inline-if* true]
+      (emit-delimited "," (seq expr)))))
 
 (defn- emit-re [expr]
   (print (str "/" (apply str (replace {\/ "\\/"} (str expr))) "/")))
@@ -188,6 +190,10 @@
 (def *macros* (ref {}))
 (defn- macro? [n] (and (symbol? n) (contains? @*macros* (name n))))
 (defn- get-macro [n] (and (symbol? n) (get @*macros* (name n))))
+(defn- undef-macro [n]
+  (when (macro? n)
+    (println "// undefining macro" n)
+    (dosync (alter *macros* dissoc (name n)))))
 
 (defmethod emit "defmacro" [[_ mname args & body]]
   (dosync
@@ -342,8 +348,8 @@
   (with-block (emit-function fdecl)))
 
 (defmethod emit "defn" [[_ name & fdecl]]
-  (assert-args defn
-    (symbol? name) "a symbol as its name")
+  (assert-args defn (symbol? name) "a symbol as its name")
+  (undef-macro name)
   (emit-symbol name)
   (print " = ")
   (with-block
@@ -442,7 +448,8 @@
         (emit-get)))))
 
 (defmethod emit "set!" [[_ & apairs]]
-  (binding [*return-expr* false]
+  (binding [*return-expr* false
+            *in-fn-toplevel* false]
     (let [apairs (partition 2 apairs)]
       (emit-delimited " = " (first apairs))
       (doseq [apair (rest apairs)]
@@ -503,7 +510,11 @@
 
 (defmethod emit "recur" [[_ & args]]
   (binding [*return-expr* false]
-    (emit-statements (map (fn [lvar val] `(set! ~lvar ~val)) *loop-vars* args)))
+    (emit-statements (keep identity
+                           (map (fn [lvar val]
+                                  (if-not (= lvar val) `(set! ~lvar ~val)))
+                                *loop-vars*
+                                args))))
   (newline-indent)
   (print "continue"))
 
