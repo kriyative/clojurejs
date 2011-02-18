@@ -31,9 +31,11 @@
 (defmacro string? [s] `(== "string" (typeof ~s)))
 (defmacro number? [n] `(== "number" (typeof ~n)))
 (defmacro boolean? [b] `(== "boolean" (typeof ~b)))
+(defmacro fn? [f] `(== "function" (typeof ~f)))
 (defmacro join [sep seq] `(.join ~seq ~sep))
 (defmacro str [& args] `(+ "" ~@args))
 (defmacro inc! [arg] `(set! ~arg (+ 1 ~arg)))
+
 (defmacro lvar [& bindings]
   `(inline
     ~(str "var "
@@ -41,6 +43,7 @@
             (map (fn [[vname vval]]
                    (str vname " = " (clojurejs.js/emit-str vval)))
                  (partition 2 bindings))))))
+
 (defmacro doseq [[var seq] & body]
   `(do
      (lvar seq# ~seq ~var nil)
@@ -78,6 +81,16 @@
         (recur r (+ i 1)))
       r)))
 
+(defn remove [pred seq]
+  (loop [r []
+         i 0]
+    (if (< i (count seq))
+      (do
+        (when-not (pred (get seq i))
+          (.push r (get seq i)))
+        (recur r (+ 1 i)))
+      r)))
+
 (defn merge
   "Merge the contents of map `m2' into map `m1' and return a new map."
   [m1 m2]
@@ -108,3 +121,25 @@
      (string? spec) (.createTextNode document spec)
      (array? spec) (html1 spec)
      :else spec)))
+
+(defn html-str
+  "Generate a string representation of the specified HTML spec."
+  [spec]
+  (let [map-str (fn [m]
+                  (let [s []]
+                    (dokeys [k m] (.push s (+ k "='" (get m k) "'")))
+                    (join " " s)))
+        html1 (fn [spec]
+                (join ""
+                      [(+ "<" (first spec)
+                          (if (map? (second spec)) (+ " " (map-str (second spec))) "")
+                          ">")
+                       (let [s []
+                             kindex (if (map? (second spec)) 2 1)]
+                         (loop [i kindex]
+                           (when (< i (count spec))
+                             (.push s (html-str (get spec i)))
+                             (recur (+ i 1))))
+                         (join "" s))
+                       (+ "</" (first spec) ">")]))]
+    (if (array? spec) (html1 spec) spec)))
