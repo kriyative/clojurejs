@@ -247,11 +247,12 @@
   (contains? #{'& :as} form))
 
 (defn- emit-binding [vname val]
-  (let [emitter (cond
-                  (vector? vname) emit-destructured-seq-binding
-                  (map? vname)    emit-destructured-map-binding
-                  :else           emit-simple-binding)]
-    (emitter vname val)))
+  (binding [*inline-if* true]
+    (let [emitter (cond
+                   (vector? vname) emit-destructured-seq-binding
+                   (map? vname)    emit-destructured-map-binding
+                   :else           emit-simple-binding)]
+      (emitter vname val))))
 
 (defn- emit-destructured-seq-binding [vvec val]
   (let [temp (tempsym)]
