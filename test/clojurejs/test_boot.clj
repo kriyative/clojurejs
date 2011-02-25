@@ -25,3 +25,10 @@
 (deftest datastructures
   (is (= (js (contains? {:a 1} :a))
          "'a' in {'a' : 1}")))
+
+(deftest types
+  (is (= (js (array? [1 2 3]))
+         "([1,2,3] instanceof Array)"))
+
+  (is (= (js (isa? "foobar" "String"))
+         "(\"foobar\" instanceof String)")))

@@ -26,7 +26,8 @@
 (defmacro second [x] `(get ~x 1))
 (defmacro third [x] `(get ~x 2))
 (defmacro last [x] `(get ~x (- (count ~x) 1)))
-(defmacro isa? [a t] `(inline ~(str "(" a " instanceof " t ")")))
+(defmacro isa? [a t]
+  `(inline ~(str "(" (clojurejs.js/emit-str a) " instanceof " t ")")))
 (defmacro array? [a] `(isa? ~a "Array"))
 (defmacro string? [s] `(== "string" (typeof ~s)))
 (defmacro number? [n] `(== "number" (typeof ~n)))
