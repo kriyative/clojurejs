@@ -457,7 +457,8 @@
 
 (defmethod emit "set!" [[_ & apairs]]
   (binding [*return-expr* false
-            *in-fn-toplevel* false]
+            *in-fn-toplevel* false
+            *inline-if* true]
     (let [apairs (partition 2 apairs)]
       (emit-delimited " = " (first apairs))
       (doseq [apair (rest apairs)]

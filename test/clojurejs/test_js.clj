@@ -207,5 +207,6 @@
 (deftest do-expression-test
   (js-import [foo]
     (expect [foo (->> (times once) (returns 0))]
-      (is (= 123 (js-eval (do (def x (do (foo) 123)) x)))))))
-  
+      (is (= 123 (js-eval (do (def x (do (foo) 123)) x)))))
+    (expect [foo (->> (times once) (returns 0))]
+      (is (= 123 (js-eval (do (def x -1) (set! x (do (foo) 123)) x)))))))
