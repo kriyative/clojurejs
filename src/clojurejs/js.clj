@@ -185,7 +185,8 @@
   (print "var ")
   (emit-symbol name)
   (print " = ")
-  (emit value))
+  (binding [*inline-if* true]
+    (emit value)))
 
 (def *macros* (ref {}))
 (defn- macro? [n] (and (symbol? n) (contains? @*macros* (name n))))
@@ -387,7 +388,13 @@
       (emit-block-if))))
 
 (defmethod emit "do" [[_ & exprs]]
-  (emit-statements-with-return exprs))
+  (if *inline-if*
+    (do
+      (print "(function(){")
+      (binding [*return-expr* true]
+        (emit-statements-with-return exprs))
+      (print "})()"))
+    (emit-statements-with-return exprs)))
 
 (defmethod emit "let" [[_ bindings & exprs]]
   (let [emit-var-decls (fn []

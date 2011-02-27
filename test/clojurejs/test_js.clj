@@ -11,8 +11,10 @@
 ;; remove this notice, or any other, from this software.
 
 (ns clojurejs.test-js
-  (:use [clojure.test :only [deftest is]])
-  (:use clojurejs.js))
+  (:use [clojure.test :only [deftest is]]
+        clojurejs.js
+        clojurejs.util.test
+        clojure.contrib.mock))
 
 (tojs "src/clojurejs/boot.cljs")
 
@@ -199,3 +201,11 @@
              (symbol? a) "yes"
              (number? a) "no")))
          "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; }; }; }")))
+
+(declare foo)
+
+(deftest do-expression-test
+  (js-import [foo]
+    (expect [foo (->> (times once) (returns 0))]
+      (is (= 123 (js-eval (do (def x (do (foo) 123)) x)))))))
+  
