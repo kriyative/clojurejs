@@ -223,3 +223,25 @@
                  (if (do (foo) true)
                    (do (foo) 1)
                    (do (foo) 2))))))))
+
+(deftest loop-expression-test
+  (js-import [foo]
+    (expect [foo (times 2)]
+      (is (= -2 (js-eval
+                 (def x (loop [i 2]
+                          (foo)
+                          (if (>= i 0) (recur (- i 2)) i)))
+                 x))))
+    (expect [foo (times 6)]
+      (is (= -1 (js-eval
+                 (loop [i (do (foo) 9)]
+                   (if (> i 0)
+                     (recur (do (foo) (- i 2)))
+                     i))))))
+    (expect [foo (times 6)]
+      (is (= -1 (js-eval
+                 ((fn [] ; create and call anonymous fn
+                    (loop [i (do (foo) 9)] 
+                      (if (> i 0)
+                        (recur (do (foo) (- i 2)))
+                        i))))))))))
