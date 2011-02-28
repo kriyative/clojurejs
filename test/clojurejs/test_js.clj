@@ -210,3 +210,16 @@
       (is (= 123 (js-eval (do (def x (do (foo) 123)) x)))))
     (expect [foo (->> (times once) (returns 0))]
       (is (= 123 (js-eval (do (def x -1) (set! x (do (foo) 123)) x)))))))
+
+(deftest if-expression-test
+  (js-import [foo]
+    (expect [foo (times 2)]
+      (is (= 1 (js-eval
+                 (do (if (do (foo) true)
+                       (do (foo) 1)
+                       (do (foo) 2)))))))
+    (expect [foo (times 2)]
+      (is (= 1 (js-eval
+                 (if (do (foo) true)
+                   (do (foo) 1)
+                   (do (foo) 2))))))))
