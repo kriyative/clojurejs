@@ -61,11 +61,10 @@
                   seen) (.getIds obj))))
 
 (defn- unwrap-value
-  ([obj] (unwrap-value obj #{}))
+  ([obj] (unwrap-value obj nil))
   ([obj seen]
-     (let [obj-id (System/identityHashCode obj)
-           new-seen (conj seen obj-id)]
-       (when (contains? seen obj-id)
+     (let [new-seen (conj seen obj)]
+       (when-not (nil? (some #(identical? obj %) seen))
          (throw
           (RuntimeException. "Circular reference in unwrapped JS objects.")))
        (cond
@@ -79,7 +78,8 @@
    (sequential? obj) (.newArray *context* *scope* (to-array obj))
    (map? obj) (let [jsobj (.newObject *context* *scope*)]
                 (doseq [[k v] obj]
-                  (.put jsobj (wrap-value k) jsobj (wrap-value v)))
+                  (let [wrapped-key (if (keyword? k) (name k) (wrap-value k))]
+                    (.put jsobj wrapped-key jsobj (wrap-value v))))
                 jsobj)
    (or (and (instance? Long obj)
             (<= (Math/abs obj) 0x20000000000000))
@@ -124,7 +124,7 @@
   (let [imports (map #(simplify-import-decl *ns* %) imports)]
     `(call-in-new-js-scope
       (fn []
-        ~@(map (fn [x] `(apply js-import* ~x)) imports)
+        ~@(map (fn [x] `(js-import* ~@x)) imports)
         ~@body))))
 
 (defn js-eval* [code]

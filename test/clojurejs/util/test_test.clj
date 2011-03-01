@@ -8,7 +8,7 @@
   (is (= 1 (js-eval 1)))
   (is (= "BOO-YAH" (js-eval "BOO-YAH")))
   (is (= [1 "two"] (js-eval [1 "two"])))
-  (is (= {1 "two"} (js-eval ((fn [] {1 "two"}))))))
+  (is (= {1 "two" :three 4} (js-eval ((fn [] {1 "two" :three 4}))))))
 
 (defn- foo [] "imported")
 
