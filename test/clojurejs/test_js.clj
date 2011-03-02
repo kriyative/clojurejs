@@ -227,8 +227,8 @@
 (deftest loop-expression-test
   (js-import [foo]
     (expect [foo (times 2)]
-      (is (= -2 (js-eval
-                 (def x (loop [i 2]
+      (is (= -1 (js-eval
+                 (def x (loop [i 1]
                           (foo)
                           (if (>= i 0) (recur (- i 2)) i)))
                  x))))

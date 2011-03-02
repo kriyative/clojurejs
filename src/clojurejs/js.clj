@@ -501,22 +501,21 @@
                          (print "; true;) {")
                          (with-indent []
                            (binding [*loop-vars* (first (unzip bindings))]
-                             (with-return-expr [true]
-                               (emit-statements body)))
+                             (emit-statements-with-return body))
                            (newline-indent)
                            (print "break;"))
                          (newline-indent)
                          (print "}"))]
-    (if-not *in-fn-toplevel*
+    (if (or (not *in-fn-toplevel*) *inline-if*)
       (with-return-expr []
         (print "(function () {")
-        (with-indent []
-          (newline-indent)
-          (emit-for-block))
-        (newline-indent)
+        (binding [*return-expr* true]
+          (with-indent []
+            (newline-indent)
+            (emit-for-block))
+          (newline-indent))
         (print "}).call(this)"))
-      (binding [*in-fn-toplevel* false
-                *return-expr* false]
+      (binding [*in-fn-toplevel* false]
         (emit-for-block)))))
 
 (defmethod emit "recur" [[_ & args]]
