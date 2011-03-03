@@ -361,12 +361,11 @@
   (let [emit-inline-if (fn []
                          (with-return-expr []
                            (with-parens []
-                             (binding [*inline-if* true]
-                               (emit test)
-                               (print " ? ")
-                               (emit consequent)
-                               (print " : ")
-                               (emit alternate)))))
+                             (emit test)
+                             (print " ? ")
+                             (emit consequent)
+                             (print " : ")
+                             (emit alternate))))
         emit-block-if (fn []
                         (print "if (")
                         (binding [*return-expr* false
