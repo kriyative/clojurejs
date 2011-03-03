@@ -405,7 +405,7 @@
                            (with-block (emit-var-bindings bindings))
                            (print ";"))
                          (emit-statements-with-return exprs))]
-    (if-not *in-fn-toplevel*
+    (if (or (not *in-fn-toplevel*) *inline-if*)
       (with-return-expr []
         (print "(function () {")
         (with-indent []

@@ -245,3 +245,9 @@
                       (if (> i 0)
                         (recur (do (foo) (- i 2)))
                         i))))))))))
+
+(deftest let-expression-test
+  (js-import [foo]
+    (expect [foo (times 2)]
+      (is (= 123 (js-eval (def x (let [y 123] (foo) y)) x)))
+      (is (= 123 (js-eval (do (def x (let [y 123] (foo) y)) x)))))))
