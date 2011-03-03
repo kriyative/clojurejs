@@ -251,3 +251,9 @@
     (expect [foo (times 2)]
       (is (= 123 (js-eval (def x (let [y 123] (foo) y)) x)))
       (is (= 123 (js-eval (do (def x (let [y 123] (foo) y)) x)))))))
+
+(deftest new-form-test
+  (js-import [foo]
+    (expect [foo (times 5)]
+      (is (= 123 (js-eval (new (do (foo) Number) (do (foo) 123)))))
+      (is (= 123 (js-eval (do (foo) (new (do (foo) Number) (do (foo) 123)))))))))

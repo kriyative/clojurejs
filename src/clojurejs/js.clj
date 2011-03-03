@@ -419,9 +419,10 @@
 
 (defmethod emit "new" [[_ class & args]]
   (with-return-expr []
-    (print "new ")
-    (emit class)
-    (with-parens [] (emit-delimited "," args))))
+    (binding [*inline-if* true]
+      (print "new ")
+      (emit class)
+      (with-parens [] (emit-delimited "," args)))))
 
 (defmethod emit "return" [[_ value]]
   (print "return ")

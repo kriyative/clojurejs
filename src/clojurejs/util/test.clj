@@ -2,7 +2,7 @@
   "Utility functions to help testing clojurejs."
   (:use [clojurejs.js :only [js]])
   (:import (org.mozilla.javascript Context ScriptableObject NativeArray
-                                   NativeObject NativeJavaObject)))
+                                   NativeObject NativeJavaObject Scriptable)))
 
 (def ^{:private true} *scope* nil)
 (def ^{:private true} *context* nil)
@@ -71,6 +71,15 @@
         (instance? NativeJavaObject obj) (.unwrap obj)
         (instance? NativeObject obj) (js-object-to-clj-map obj new-seen)
         (instance? NativeArray obj) (js-array-to-clj-vector obj new-seen)
+        (instance? Scriptable obj)
+          (let [class (.getClassName obj)]
+            (case class
+              "String" (str obj)
+              "RegExp" (if-let [regexp (second (re-find "^/(.*)/$" (str obj)))]
+                         (re-pattern regexp)
+                         obj)
+              "Number" (Double/valueOf (str obj))
+              obj))
         :else obj))))
 
 (defn- wrap-value [obj]
