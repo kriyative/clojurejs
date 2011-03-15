@@ -1,15 +1,12 @@
 # clojurejs
 
-clojurejs is a naive implementation of a Clojure subset language to
-Javascript translator. clojurejs is an attempt to implement the
-predictable semantics in the generated Javascript. Some of its features are:
+clojurejs is a naive implementation of a Clojure subset language to Javascript translator. clojurejs is an attempt to implement the predictable semantics in the generated Javascript. Some of its features are:
 
 * Consistent scoping in ``let`` and ``loop/recur`` forms
 * Macros with ``defmacro``
 * Implicit ``return`` from all forms
 * ``loop/recur`` translates to Javascript ``for`` loops
-* Translates Clojure vectors, strings, keywords, symbols and maps to
-  Javascript equivalents
+* Translates Clojure vectors, strings, keywords, symbols and maps to Javascript equivalents
 
 # License
 
@@ -19,28 +16,21 @@ Eclipse Public License - v 1.0.
 
 ## Scoping Rules
 
-clojurejs implements ``let`` and ``loop/recur`` with anonymous
-functions in Javascript to ensure consistent scoping rules. See the
-Examples section for samples of ``let`` expansions.
+clojurejs implements ``let`` and ``loop/recur`` with anonymous functions in Javascript to ensure consistent scoping rules. See the Examples section for samples of ``let`` expansions.
 
 ## Implicit Return
 
-clojurejs tries to be exhaustive about implementing _implicit return_
-in the generated Javascript. This is one area where more unit tests
-are much needed.
+clojurejs tries to be exhaustive about implementing _implicit return_ in the generated Javascript. This is one area where more unit tests are much needed.
 
 ## Reserved Symbols/Forms
 
 The following reserved forms are implemented by the clojurejs translator:
 
-    def, defn, defmacro, do, dokeys, fn, get, if, inline, length, let,
-    loop, new, nil, recur, return, set!, try/catch/finally
+    def, defn, defmacro, do, dokeys, fn, get, if, inline, length, let, loop, new, nil, recur, return, set!, try/catch/finally
 
 ## Symbol Translation
 
-The translator rewrites Lisp style symbols like ``*foo*``,
-``number?``, and ``inc!`` to acceptable Javascript forms such as the
-following:
+The translator rewrites Lisp style symbols like ``*foo*``, ``number?``, and ``inc!`` to acceptable Javascript forms such as the following:
 
     Lisp         Javascript
     ----         ----------
@@ -62,8 +52,7 @@ clojurejs recognizes the following standard Javascript operators:
 
 ## Arrays and Objects
 
-Javascript Array and Object member access is via the ``get`` form,
-e.g.,
+Javascript Array and Object member access is via the ``get`` form, e.g.,
 
     (def arr [:foo :bar :baz])
     (get arr 0)                ;; => :foo
@@ -75,13 +64,11 @@ e.g.,
 
 ## Special Forms
 
-clojurejs introduces a couple of special forms, to support Javascript
-specific functionality.
+clojurejs introduces a couple of special forms, to support Javascript specific functionality.
 
 ### dokeys
 
-_dokeys_ is a Clojure (subset) equivalent of the Javascript _for..in_
-loop.
+_dokeys_ is a Clojure (subset) equivalent of the Javascript _for..in_ loop.
 
     (dokeys [k attrs] (.setAttribute el k (get attrs k)))
 
@@ -101,8 +88,7 @@ translates to the following Javascript:
 
 # Examples
 
-Please note that the output from the following examples are pretty
-printed Javascript, which is not the default.
+Please note that the output from the following examples are pretty printed Javascript, which is not the default.
 
 To get started:
 
@@ -144,9 +130,7 @@ which translates to:
         return (a + b + c);;
     }
 
-Map destructuring (aka associative destructuring) allows to bind the properties
-of a JavaScript object to names, including ``:keys`` syntax and defaults for missing
-keys (using ``:or``). For example:
+Map destructuring (aka associative destructuring) allows to bind the properties of a JavaScript object to names, including ``:keys`` syntax and defaults for missing keys (using ``:or``). For example:
 
     (js
      (defn test-fn [square]
@@ -165,8 +149,7 @@ becomes:
     return do_stuff(area);;
 
 
-When destructuring an array, aliasing the whole array with ``:as`` works
-the same as in Clojure. Destructuring bindings may be nested arbitrarily.
+When destructuring an array, aliasing the whole array with ``:as`` works the same as in Clojure. Destructuring bindings may be nested arbitrarily.
 
 ## Macros
 
@@ -229,27 +212,19 @@ translates to:
 
 # Caveats
 
-The _defn_ form doesn't support multiple arity forms or
-keyword args. Doc-strings are supported and emitted as comments
-if pretty-printing is turned on.
+The _defn_ form doesn't support multiple arity forms or keyword args. Doc-strings are supported and emitted as comments if pretty-printing is turned on.
 
-Currently, there's no support for namespaces. Macro expanders are
-defined in a global ref, which is preserved between successive
-invocations of the translator.
+Currently, there's no support for namespaces. Macro expanders are defined in a global ref, which is preserved between successive invocations of the translator.
 
-There's lots of room for improvements in the generated Javascript,
-from performance tweaks to better formatting of expressions.
+There's lots of room for improvements in the generated Javascript, from performance tweaks to better formatting of expressions.
 
 # boot.cljs
 
-The file `boot.cljs' includes some useful macros and utility functions
-implemented in clojurejs.
+The file `boot.cljs' includes some useful macros and utility functions implemented in clojurejs.
 
 ## (html _spec_)
 
-The _html_ function in boot.cljs implements a minimal HTML templating
-facility which is similar to hiccup, but is executed on the browser
-side.
+The _html_ function in boot.cljs implements a minimal HTML templating facility which is similar to hiccup, but is executed on the browser side.
 
     (jq
      (defn test []
@@ -263,17 +238,33 @@ side.
                    [:li [:a {:class "link_about"} "About"]]
                    [:li [:a {:class "link_contact"} "Contact"]]]]))))
 
-Invoking _(test)_ on the browser side would create and add the dom
-tree specified in the array structure to the document body.
+Invoking _(test)_ on the browser side would create and add the dom tree specified in the array structure to the document body.
+
+## (html-str __spec__)
+
+The __html-str__ function is similar to the __html__ function, except it returns a HTML string represenation of the specified __spec__. e.g.,
+
+    (html-str
+     [:ul
+      [:li [:a {:href "#"} "link1"]]
+      [:li [:a {:href "#"} "link2"]]])
+
+at runtime, would generate:
+
+    "<ul><li><a href='#'>link1</a></li><li><a href='#'>link2</a></li></ul>"
 
 # Release notes
 
-* ver 1.2.0
+* 1.2.6
+
+  - bugfixes for various javascript emitter issues
+
+  - integrates with the [Rhino javascript engine](http://www.mozilla.org/rhino/) for running unit tests on the emitted javascript, thanks to [Anton Frolov](http://github.com/antonf).
+
+* 1.2.0
 
   - adds support for destructuring in `fn`, `defn`, and `let` forms
 
-  - a little optimization in `let` and `loop` forms, the outermost
-    `function` block is elided
+  - a little optimization in `let` and `loop` forms, the outermost `function` block is elided
 
-  - added a sample macro implementation of the `lvar` form, to add
-    local var declarations in the generated Javascript
+  - added a sample macro implementation of the `lvar` form, to add local var declarations in the generated Javascript
