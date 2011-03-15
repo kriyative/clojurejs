@@ -1,7 +1,7 @@
 (ns clojurejs.util.test-test
   "Unit tests for utility functions used in tests"
   (:use [clojure.test :only [deftest is]]
-        clojurejs.util.test
+        clojurejs.util.test-rhino
         clojure.contrib.mock))
 
 (deftest eval-test

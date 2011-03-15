@@ -13,7 +13,7 @@
 (ns clojurejs.test-js
   (:use [clojure.test :only [deftest is]]
         clojurejs.js
-        clojurejs.util.test
+        clojurejs.util.test-rhino
         clojure.contrib.mock))
 
 (tojs "src/clojurejs/boot.cljs")

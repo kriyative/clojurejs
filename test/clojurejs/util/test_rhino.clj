@@ -1,4 +1,4 @@
-(ns clojurejs.util.test
+(ns clojurejs.util.test-rhino
   "Utility functions to help testing clojurejs."
   (:use [clojurejs.js :only [js]])
   (:import (org.mozilla.javascript Context ScriptableObject NativeArray
