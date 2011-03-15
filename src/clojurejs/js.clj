@@ -346,7 +346,8 @@
     (print "}")))
 
 (defmethod emit "fn" [[_ & fdecl]]
-  (with-block (emit-function fdecl)))
+  (with-return-expr []
+    (with-block (emit-function fdecl))))
 
 (defmethod emit "defn" [[_ name & fdecl]]
   (assert-args defn (symbol? name) "a symbol as its name")
