@@ -185,7 +185,8 @@
   (print "var ")
   (emit-symbol name)
   (print " = ")
-  (emit value))
+  (binding [*inline-if* true]
+    (emit value)))
 
 (def *macros* (ref {}))
 (defn- macro? [n] (and (symbol? n) (contains? @*macros* (name n))))
@@ -368,7 +369,8 @@
                              (emit alternate))))
         emit-block-if (fn []
                         (print "if (")
-                        (binding [*return-expr* false]
+                        (binding [*return-expr* false
+                                  *inline-if* true]
                           (emit test))
                         (print ") {")
                         (with-block
@@ -388,7 +390,13 @@
       (emit-block-if))))
 
 (defmethod emit "do" [[_ & exprs]]
-  (emit-statements-with-return exprs))
+  (if *inline-if*
+    (do
+      (print "(function(){")
+      (binding [*return-expr* true]
+        (emit-statements-with-return exprs))
+      (print "})()"))
+    (emit-statements-with-return exprs)))
 
 (defmethod emit "let" [[_ bindings & exprs]]
   (let [emit-var-decls (fn []
@@ -397,7 +405,7 @@
                            (with-block (emit-var-bindings bindings))
                            (print ";"))
                          (emit-statements-with-return exprs))]
-    (if-not *in-fn-toplevel*
+    (if (or (not *in-fn-toplevel*) *inline-if*)
       (with-return-expr []
         (print "(function () {")
         (with-indent []
@@ -411,9 +419,10 @@
 
 (defmethod emit "new" [[_ class & args]]
   (with-return-expr []
-    (print "new ")
-    (emit class)
-    (with-parens [] (emit-delimited "," args))))
+    (binding [*inline-if* true]
+      (print "new ")
+      (emit class)
+      (with-parens [] (emit-delimited "," args)))))
 
 (defmethod emit "return" [[_ value]]
   (print "return ")
@@ -451,7 +460,8 @@
 
 (defmethod emit "set!" [[_ & apairs]]
   (binding [*return-expr* false
-            *in-fn-toplevel* false]
+            *in-fn-toplevel* false
+            *inline-if* true]
     (let [apairs (partition 2 apairs)]
       (emit-delimited " = " (first apairs))
       (doseq [apair (rest apairs)]
@@ -492,22 +502,21 @@
                          (print "; true;) {")
                          (with-indent []
                            (binding [*loop-vars* (first (unzip bindings))]
-                             (with-return-expr [true]
-                               (emit-statements body)))
+                             (emit-statements-with-return body))
                            (newline-indent)
                            (print "break;"))
                          (newline-indent)
                          (print "}"))]
-    (if-not *in-fn-toplevel*
+    (if (or (not *in-fn-toplevel*) *inline-if*)
       (with-return-expr []
         (print "(function () {")
-        (with-indent []
-          (newline-indent)
-          (emit-for-block))
-        (newline-indent)
+        (binding [*return-expr* true]
+          (with-indent []
+            (newline-indent)
+            (emit-for-block))
+          (newline-indent))
         (print "}).call(this)"))
-      (binding [*in-fn-toplevel* false
-                *return-expr* false]
+      (binding [*in-fn-toplevel* false]
         (emit-for-block)))))
 
 (defmethod emit "recur" [[_ & args]]

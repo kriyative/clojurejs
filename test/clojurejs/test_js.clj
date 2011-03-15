@@ -11,8 +11,10 @@
 ;; remove this notice, or any other, from this software.
 
 (ns clojurejs.test-js
-  (:use [clojure.test :only [deftest is]])
-  (:use clojurejs.js))
+  (:use [clojure.test :only [deftest is]]
+        clojurejs.js
+        clojurejs.util.test
+        clojure.contrib.mock))
 
 (tojs "src/clojurejs/boot.cljs")
 
@@ -199,3 +201,59 @@
              (symbol? a) "yes"
              (number? a) "no")))
          "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" == typeof(a))) { return \"no\"; }; }; }")))
+
+(declare foo)
+
+(deftest do-expression-test
+  (js-import [foo]
+    (expect [foo (->> (times once) (returns 0))]
+      (is (= 123 (js-eval (do (def x (do (foo) 123)) x)))))
+    (expect [foo (->> (times once) (returns 0))]
+      (is (= 123 (js-eval (do (def x -1) (set! x (do (foo) 123)) x)))))))
+
+(deftest if-expression-test
+  (js-import [foo]
+    (expect [foo (times 2)]
+      (is (= 1 (js-eval
+                 (do (if (do (foo) true)
+                       (do (foo) 1)
+                       (do (foo) 2)))))))
+    (expect [foo (times 2)]
+      (is (= 1 (js-eval
+                 (if (do (foo) true)
+                   (do (foo) 1)
+                   (do (foo) 2))))))))
+
+(deftest loop-expression-test
+  (js-import [foo]
+    (expect [foo (times 2)]
+      (is (= -1 (js-eval
+                 (def x (loop [i 1]
+                          (foo)
+                          (if (>= i 0) (recur (- i 2)) i)))
+                 x))))
+    (expect [foo (times 6)]
+      (is (= -1 (js-eval
+                 (loop [i (do (foo) 9)]
+                   (if (> i 0)
+                     (recur (do (foo) (- i 2)))
+                     i))))))
+    (expect [foo (times 6)]
+      (is (= -1 (js-eval
+                 ((fn [] ; create and call anonymous fn
+                    (loop [i (do (foo) 9)] 
+                      (if (> i 0)
+                        (recur (do (foo) (- i 2)))
+                        i))))))))))
+
+(deftest let-expression-test
+  (js-import [foo]
+    (expect [foo (times 2)]
+      (is (= 123 (js-eval (def x (let [y 123] (foo) y)) x)))
+      (is (= 123 (js-eval (do (def x (let [y 123] (foo) y)) x)))))))
+
+(deftest new-form-test
+  (js-import [foo]
+    (expect [foo (times 5)]
+      (is (= 123 (js-eval (new (do (foo) Number) (do (foo) 123)))))
+      (is (= 123 (js-eval (do (foo) (new (do (foo) Number) (do (foo) 123)))))))))
