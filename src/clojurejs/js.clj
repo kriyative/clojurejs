@@ -18,7 +18,7 @@
 
 (defn- re? [expr] (= (class expr) java.util.regex.Pattern))
 
-(def *inline-if* true) 
+(def *inline-if* false)
 (def *quoted* false)
 
 (def *print-pretty* false)
