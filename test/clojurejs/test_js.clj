@@ -86,7 +86,7 @@
               (+ a b c))))
          "test = function () { var a = 1, b = (a + 1), c = (b + 1); return (a + b + c);; }"))
 
-  ; & rest
+  ;; & rest
   (is (= (js
           (defn test []
             (let [[a b & r] [1 2 3 4]]
@@ -103,47 +103,47 @@
             [(+ a b) r]))
          "test = function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], b = _temp_1000[1], r = _temp_1000.slice(2); return [(a + b),r]; }"))
 
-  ; :as
+  ;; :as
   (is (= (js
-           (fn [a [b] [c d & e :as f] :as g] nil))
-        "function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], _temp_1001 = _temp_1000[1], b = _temp_1001[0], _temp_1002 = _temp_1000[2], c = _temp_1002[0], d = _temp_1002[1], e = _temp_1002.slice(2), f = _temp_1002, g = _temp_1000; return null; }")) 
+          (fn [a [b] [c d & e :as f] :as g] nil))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), a = _temp_1000[0], _temp_1001 = _temp_1000[1], b = _temp_1001[0], _temp_1002 = _temp_1000[2], c = _temp_1002[0], d = _temp_1002[1], e = _temp_1002.slice(2), f = _temp_1002, g = _temp_1000; return null; }")) 
 
-  ; map destructuring
+  ;; map destructuring
   (is (= (js
-           (fn [x {y :y, fred :fred}] fred))
-          "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], y = _temp_1001['y'], fred = _temp_1001['fred']; return fred; }"))
+          (fn [x {y :y, fred :fred}] fred))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], y = _temp_1001['y'], fred = _temp_1001['fred']; return fred; }"))
 
   (is (= (js
-           (fn [[{x :x, {z :z} :y}]] z))
+          (fn [[{x :x, {z :z} :y}]] z))
          "function () { var _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], _temp_1002 = _temp_1001[0], x = _temp_1002['x'], _temp_1003 = _temp_1002['y'], z = _temp_1003['z']; return z; }"))
 
-  ; numbers as keys (this actually works)
+  ;; numbers as keys (this actually works)
   (is (= (js
-           (fn [{a 1, b 2, :or {a 3}}]))
-           "function () { var _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], a = (1 in _temp_1001 ? _temp_1001[1] : 3), b = _temp_1001[2]; return null; }"))
+          (fn [{a 1, b 2, :or {a 3}}]))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), _temp_1001 = _temp_1000[0], a = (1 in _temp_1001 ? _temp_1001[1] : 3), b = _temp_1001[2]; return null; }"))
 
-  ; :keys, :strs
+  ;; :keys, :strs
   (is (= (js
-           (fn [x {y :y, z :z :keys [a b]}] z))
+          (fn [x {y :y, z :z :keys [a b]}] z))
          "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], a = _temp_1001['a'], b = _temp_1001['b'], y = _temp_1001['y'], z = _temp_1001['z']; return z; }"))
 
   (is (= (js
-           (fn [x {y :y, z :z :strs [a b]}] z))
+          (fn [x {y :y, z :z :strs [a b]}] z))
          "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], a = _temp_1001['a'], b = _temp_1001['b'], y = _temp_1001['y'], z = _temp_1001['z']; return z; }"))
-  ; defaults
+                                        ; defaults
   (is (= (js
-           (fn [x {y :y, z :z :or {y 1, z "foo"}}] z))
-"function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], y = ('y' in _temp_1001 ? _temp_1001['y'] : 1), z = ('z' in _temp_1001 ? _temp_1001['z'] : \"foo\"); return z; }"))
+          (fn [x {y :y, z :z :or {y 1, z "foo"}}] z))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], y = ('y' in _temp_1001 ? _temp_1001['y'] : 1), z = ('z' in _temp_1001 ? _temp_1001['z'] : \"foo\"); return z; }"))
 
   (is (= (js
-           (fn [x {y :y, z :z :keys [a b] :or {a 1, y :bleh}}] z))
-           "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], a = ('a' in _temp_1001 ? _temp_1001['a'] : 1), b = _temp_1001['b'], y = ('y' in _temp_1001 ? _temp_1001['y'] : 'bleh'), z = _temp_1001['z']; return z; }"))
+          (fn [x {y :y, z :z :keys [a b] :or {a 1, y :bleh}}] z))
+         "function () { var _temp_1000 = Array.prototype.slice.call(arguments), x = _temp_1000[0], _temp_1001 = _temp_1000[1], a = ('a' in _temp_1001 ? _temp_1001['a'] : 1), b = _temp_1001['b'], y = ('y' in _temp_1001 ? _temp_1001['y'] : 'bleh'), z = _temp_1001['z']; return z; }"))
 
-  ; unsupported for now
+  ;; unsupported for now
   (is (thrown-with-msg? Exception #"& must be followed by"
-      (js
-        (fn [x y & {z :z}] z))))
-)
+        (js
+         (fn [x y & {z :z}] z))))
+  )
 
 (deftest macros
   (is (= (js
@@ -165,7 +165,11 @@
   (is (= (js
           (defn test [a]
             ((if (> a 0) minus plus) a 1)))
-         "test = function (a) { return (((a > 0) ? minus : plus))(a,1); }")))
+         "test = function (a) { return (((a > 0) ? minus : plus))(a,1); }"))
+  
+  ;; implicit `null` alternate
+  (is (= (js (defn test [a] (console.log (if (> a 0) a))))
+         "test = function (a) { return console.log(((a > 0) ? a : null)); }")))
 
 (deftest inline-primitives
   (is (= (js (defn isa? [i c] (inline "return i instanceof c")))
