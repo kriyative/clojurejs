@@ -54,6 +54,14 @@
          ~@body
          (recur (+ i# 1))))))
 
+(defmacro dotimes [[var n] & body]
+  `(do
+     (lvar n# ~n)
+     (loop [~var 0]
+       (when (< ~var n#)
+         ~@body
+         (recur (+ ~var 1))))))
+
 (def *gensym* 999)
 (defn gensym []
   (inc! *gensym*)
