@@ -388,7 +388,7 @@
                               (emit-statement alternate)))
                           (newline-indent)
                           (print "}")))]
-    (if (and *inline-if* consequent alternate)
+    (if (and *inline-if* consequent)
       (emit-inline-if)
       (emit-block-if))))
 
