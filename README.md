@@ -1,6 +1,6 @@
-# clojurejs
+# ClojureJS
 
-clojurejs is a naive implementation of a Clojure subset language to Javascript translator. clojurejs is an attempt to implement the predictable semantics in the generated Javascript. Some of its features are:
+ClojureJS is a naive implementation of a Clojure subset language to Javascript translator. ClojureJS is an attempt to implement the predictable semantics in the generated Javascript. Some of its features are:
 
 * Consistent scoping in ``let`` and ``loop/recur`` forms
 * Macros with ``defmacro``
@@ -16,15 +16,15 @@ Eclipse Public License - v 1.0.
 
 ## Scoping Rules
 
-clojurejs implements ``let`` and ``loop/recur`` with anonymous functions in Javascript to ensure consistent scoping rules. See the Examples section for samples of ``let`` expansions.
+ClojureJS implements ``let`` and ``loop/recur`` with anonymous functions in Javascript to ensure consistent scoping rules. See the Examples section for samples of ``let`` expansions.
 
 ## Implicit Return
 
-clojurejs tries to be exhaustive about implementing _implicit return_ in the generated Javascript. This is one area where more unit tests are much needed.
+ClojureJS tries to be exhaustive about implementing _implicit return_ in the generated Javascript. This is one area where more unit tests are much needed.
 
 ## Reserved Symbols/Forms
 
-The following reserved forms are implemented by the clojurejs translator:
+The following reserved forms are implemented by the ClojureJS translator:
 
     def, defn, defmacro, do, dokeys, fn, get, if, inline, length, let, loop, new, nil, recur, return, set!, try/catch/finally
 
@@ -41,9 +41,17 @@ The translator rewrites Lisp style symbols like ``*foo*``, ``number?``, and ``in
     and          &&
     or           ||
 
+However, quoted and keyword symbols are not name mangled as of ClojureJS 1.2.7, e.g.,
+
+    (js {:foo-bar 1 'list-action 2})
+
+now generates:
+
+    "{'foo-bar' : 1,'list-action' : 2}"
+
 ## Operators
 
-clojurejs recognizes the following standard Javascript operators:
+ClojureJS recognizes the following standard Javascript operators:
 
     ++ -- !
     && || + - * / %
@@ -64,7 +72,7 @@ Javascript Array and Object member access is via the ``get`` form, e.g.,
 
 ## Special Forms
 
-clojurejs introduces a couple of special forms, to support Javascript specific functionality.
+ClojureJS introduces a couple of special forms, to support Javascript specific functionality.
 
 ### dokeys
 
@@ -220,7 +228,7 @@ There's lots of room for improvements in the generated Javascript, from performa
 
 # boot.cljs
 
-The file `boot.cljs' includes some useful macros and utility functions implemented in clojurejs.
+The file `boot.cljs' includes some useful macros and utility functions implemented in ClojureJS.
 
 ## (html _spec_)
 
@@ -254,6 +262,14 @@ at runtime, would generate:
     "<ul><li><a href='#'>link1</a></li><li><a href='#'>link2</a></li></ul>"
 
 # Release notes
+
+* 1.2.7
+
+  - Quoted and keyword symbols are no longer name-mangled
+
+  - Fixes a corner case of inline `if` generation, where an alternate clause isn't explicitly provided
+
+  - Added a `dotimes` macro
 
 * 1.2.6
 
