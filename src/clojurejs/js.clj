@@ -562,6 +562,7 @@
        (keyword? expr) (emit-keyword expr)
        (string? expr) (pr expr)
        (symbol? expr) (emit-symbol expr)
+       (char? expr) (print (format "'%c'" expr))
        (and *quoted* (coll? expr)) (emit-vector expr)
        (coll? expr) (emit-function-form expr)
        true (print expr)))))
