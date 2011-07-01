@@ -25,7 +25,9 @@
   (is (= (js inc!) "incf"))
   (is (= (js {:foo 1 :bar 2 :baz 3}) "{'foo' : 1,'bar' : 2,'baz' : 3}"))
   (is (= (js [:foo :bar :baz]) "['foo','bar','baz']"))
-  (is (= (js #"^([a-z]*)([0-9]*)") "/^([a-z]*)([0-9]*)/")))
+  (is (= (js #"^([a-z]*)([0-9]*)") "/^([a-z]*)([0-9]*)/"))
+  (is (= (js \newline) "'\n'"))
+  (is (= (js \a) "'a'")))
 
 (deftest functions
   (is (= (js (+ 1 2 3)) "(1 + 2 + 3)"))
