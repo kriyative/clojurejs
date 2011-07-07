@@ -160,7 +160,7 @@
       (cond
        (unary-operator? fun) (apply emit-unary-operator form)
        (infix-operator? fun) (apply emit-infix-operator form)
-       (keyword? fun) (emit `(get ~@args ~fun))
+       (keyword? fun) (let [[map default] args] (emit `(get ~map ~fun ~default)))
        (method? fun) (invoke-method form)
        (coll? fun) (apply invoke-fun form)
        true (apply emit-function-call form)))))
