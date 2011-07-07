@@ -154,6 +154,7 @@
           method? (fn [f] (and (symbol? f) (= \. (first (name f)))))
           invoke-method (fn [[sel recvr & args]]
                           (apply emit-method-call recvr sel args))
+          new-object? (fn [f] (and (symbol? f) (= \. (last (name f)))))
           invoke-fun (fn [fun & args]
                        (with-parens [] (emit fun))
                        (with-parens [] (emit-delimited "," args)))]
@@ -162,6 +163,7 @@
        (infix-operator? fun) (apply emit-infix-operator form)
        (keyword? fun) (let [[map default] args] (emit `(get ~map ~fun ~default)))
        (method? fun) (invoke-method form)
+       (new-object? fun) (emit `(new ~(symbol (apply str (drop-last (str fun)))) ~@args))
        (coll? fun) (apply invoke-fun form)
        true (apply emit-function-call form)))))
 
