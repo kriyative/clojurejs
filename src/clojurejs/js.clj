@@ -161,7 +161,7 @@
       (cond
        (unary-operator? fun) (apply emit-unary-operator form)
        (infix-operator? fun) (apply emit-infix-operator form)
-       (keyword? fun) (let [[map default] args] (emit `(get ~map ~fun ~default)))
+       (keyword? fun) (let [[map & default] args] (emit `(get ~map ~fun ~@default)))
        (method? fun) (invoke-method form)
        (new-object? fun) (emit `(new ~(symbol (apply str (drop-last (str fun)))) ~@args))
        (coll? fun) (apply invoke-fun form)
