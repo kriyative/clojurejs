@@ -545,7 +545,8 @@
     (print "}")))
 
 (defmethod emit "inline" [[_ js]]
-  (print js))
+  (with-return-expr []
+    (print js)))
 
 (defmethod emit "quote" [[_ expr]]
   (binding [*quoted* true]
@@ -568,7 +569,8 @@
        true (print expr)))))
 
 (defn emit-str [expr]
-  (with-out-str (emit expr)))
+  (binding [*return-expr* false]
+    (with-out-str (emit expr))))
 
 (defn js-emit [expr] (emit expr))
 
