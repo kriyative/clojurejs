@@ -34,7 +34,8 @@
   (is (= (js (+ "foo" "bar" "baz")) "(\"foo\" + \"bar\" + \"baz\")"))
   (is (= (js (:test {:test 1 :foo 2 :bar 3}))
          "{'test' : 1,'foo' : 2,'bar' : 3}['test']"))
-  
+  (is (= (js (let [m {:test 1 :foo 2 :bar 3}] (:baz m 4)))
+         "var m = {'test' : 1,'foo' : 2,'bar' : 3}; ('baz' in m ? m['baz'] : 4);"))
   (is (= (js (append '(:foo bar baz) '(quux)))
          "append(['foo','bar','baz'], ['quux'])"))
 
@@ -262,4 +263,6 @@
   (js-import [foo]
     (expect [foo (times 5)]
       (is (= 123 (js-eval (new (do (foo) Number) (do (foo) 123)))))
-      (is (= 123 (js-eval (do (foo) (new (do (foo) Number) (do (foo) 123)))))))))
+      (is (= 123 (js-eval (do (foo) (new (do (foo) Number) (do (foo) 123))))))
+      
+      (is (= (js (Number. 10)) "new Number(10)")))))
