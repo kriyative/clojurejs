@@ -453,6 +453,8 @@
       (if default?
         ;; FIXME Should be able to re-use code for
         ;; inline if and contains? macro here.
+        ;; FIXME Also, `map` will be evaluated twice (once in
+        ;; the `in` test, and once in output of `emit-get`
         (with-parens []
           (print (sym->property key))
           (print " in ")
