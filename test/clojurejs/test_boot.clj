@@ -11,10 +11,12 @@
 ;; remove this notice, or any other, from this software.
 
 (ns clojurejs.test-boot
-  (:use [clojure.test :only [deftest is]])
-  (:use clojurejs.js))
+  (:use [clojure.test :only [deftest is]]
+        clojurejs.js
+        clojurejs.util.test-rhino
+        clojure.contrib.mock))
 
-(tojs "src/clojurejs/boot.cljs")
+(def *boot-js* (tojs "src/clojurejs/boot.cljs"))
 
 (deftest variables
   (is (= (js
@@ -32,3 +34,36 @@
 
   (is (= (js (isa? "foobar" "String"))
          "(\"foobar\" instanceof String)")))
+
+(deftest doseq-test
+  (is (= 120
+         (js-eval
+          (defn test []
+            (let [prod 1]
+              (doseq [i [1 2 3 4 5]]
+                (set! prod (* prod i)))
+              prod))
+          (test))))
+
+  (is (= [120 120]
+           (js-eval
+            (defn test []
+              (let [p1 1
+                    p2 1]
+                (doseq [[x y] [[1 1] [2 2] [3 3] [4 4] [5 5]]]
+                  (set! p1 (* p1 x)
+                        p2 (* p2 y)))
+                [p1 p2]))
+            (test)))))
+
+(deftest core-fns
+  (is (= (js (defn has-foo? [] (contains? {:foo 1 :bar 2} :foo)))
+         "has_foop = function () { return 'foo' in {'foo' : 1,'bar' : 2}; }"))
+
+  (is (= true (js-eval* {:preload *boot-js*} (contains? {:foo 1 :bar 2} :foo))))
+
+  (is (= {:foo 1 :baz 3} (js-eval* {:preload *boot-js*} (select-keys {:foo 1 :bar 2 :baz 3} [:foo :baz]))))
+
+  (is (= [1 2 3] (js-eval* {:preload *boot-js*} (vals {:foo 1 :bar 2 :baz 3}))))
+
+  (is (= ["foo" "bar" "baz"] (js-eval* {:preload *boot-js*} (keys {:foo 1 :bar 2 :baz 3})))))
