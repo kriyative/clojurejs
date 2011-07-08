@@ -9,8 +9,9 @@
 
 (declare wrap-value unwrap-value)
 
-(defn call-in-new-js-context [body-fn]
+(defn call-in-new-js-context
   "Calls body-fn function in Rhino context prepared to execute tests."
+  [body-fn]
   (try
     (let [ctx (Context/enter)
           scope (.initStandardObjects ctx)]
@@ -35,9 +36,10 @@
      (when (Context/getCurrentContext)
        (Context/exit)))))
 
-(defn call-in-new-js-scope [body-fn]
+(defn call-in-new-js-scope
   "Any changes to JavaScript scope done by body-fn will be rolled back upon
   return from this function."
+  [body-fn]
   (if (nil? *context*)
     (call-in-new-js-context #(call-in-new-js-scope body-fn))
     (let [clean-scope (.newObject *context* *scope*)]
@@ -102,8 +104,9 @@
   (let [js-fn (ScriptableObject/getProperty *scope* name)]
     (.call js-fn *context* *scope* *scope* (object-array args))))
 
-(defn js-import* [name fn-var]
+(defn js-import*
   "Import clojure function to JavaScript root object under given name."
+  [name fn-var]
   (when (.isMacro fn-var)
     (throw (RuntimeException. "Can't import macros.")))
   (call-js-fn "_clj_importfn" name fn-var))
@@ -122,7 +125,7 @@
                               var (reslv (second decl))]
                           [name var]))))
 
-(defmacro js-import [imports & body]
+(defmacro js-import
   "imports => [ import-spec* ]
   import-spec => symbol | [new-name symbol-or-var]
 
@@ -130,24 +133,38 @@
   the same as name of symbol. Or it can be list or vector of two elements:
   first is name of imported function in JavaScript, second is symbol or var
   representing a function to import."
+  [imports & body]
   (let [imports (map #(simplify-import-decl *ns* %) imports)]
     `(call-in-new-js-scope
       (fn []
         ~@(map (fn [x] `(js-import* ~@x)) imports)
         ~@body))))
 
-(defn js-eval* [code]
+(defn do-js-eval
   "Evaluate JavaScript code."
-  (call-in-new-js-scope
-   (fn []
-     (try
-       (unwrap-value
-        (.evaluateString *context* *scope* code "<test-util>" 1 nil))
-       (catch Exception e
-         (println "JavaScript Code:")
-         (println code)
-         (throw (RuntimeException. "Exception evaluating JavaScript" e)))))))
+  ([code] (do-js-eval {} code))
+  ([opts code]
+     (call-in-new-js-scope
+      (fn []
+        (try
+          (let [ctx-name "<test-util>"]
+            (if (:preload opts)
+              (.evaluateString *context* *scope* (:preload opts) ctx-name 1 nil))
+            (unwrap-value
+             (.evaluateString *context* *scope* code ctx-name 1 nil)))
+          (catch Exception e
+            (println "JavaScript Code:")
+            (println code)
+            (throw (RuntimeException. "Exception evaluating JavaScript" e))))))))
 
-(defmacro js-eval [& body]
+(defmacro js-eval
   "Compiles expressions in body to JavaScript and evaluate the result."
-  `(js-eval* (js ~@body)))
+  [& body]
+  `(do-js-eval (js ~@body)))
+
+(defmacro js-eval*
+  "Compiles expressions in body to JavaScript and evaluate the result,
+  with additional opts which may contain a :preload arg, specifying
+  code to execute prior to evaluating `body`."
+  [opts & body]
+  `(do-js-eval ~opts (js ~@body)))
