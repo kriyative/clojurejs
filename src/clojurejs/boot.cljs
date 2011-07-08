@@ -35,7 +35,11 @@
 (defmacro fn? [f] `(== "function" (typeof ~f)))
 (defmacro join [sep seq] `(.join ~seq ~sep))
 (defmacro str [& args] `(+ "" ~@args))
+(defmacro inc [arg] `(+ 1 ~arg))
+(defmacro dec [arg] `(- ~arg 1))
 (defmacro inc! [arg] `(set! ~arg (+ 1 ~arg)))
+(defmacro dec! [arg] `(set! ~arg (- ~arg 1)))
+
 (defmacro delete [arg]
   `(do
      (inline ~(str "delete " (clojurejs.js/emit-str arg)))
