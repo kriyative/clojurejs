@@ -90,7 +90,7 @@
     (not (or (=== "string" t) (=== "number" t) (=== "boolean" t) (array? m)))))
 
 (defn map [fun arr]
-  (loop [r (new Array)
+  (loop [r []
          i 0]
     (if (< i (count arr))
       (do
