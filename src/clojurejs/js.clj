@@ -556,6 +556,11 @@
   (binding [*quoted* true]
     (emit expr)))
 
+(defmethod emit "throw" [[_ expr]]
+  (binding [*return-expr* false]
+    (print "throw ")
+    (emit expr)))
+
 (defmethod emit :default [expr]
   (if (and (coll? expr) (not *quoted*) (macro? (first expr)))
     (emit-macro-expansion expr)

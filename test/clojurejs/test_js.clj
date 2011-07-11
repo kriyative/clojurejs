@@ -187,7 +187,10 @@
                   (console.log ex))
               (finally
                0))))
-         "test = function () { try { return (5 / 0); } catch (ex) { return console.log(ex); } finally { return 0; }; }")))
+         "test = function () { try { return (5 / 0); } catch (ex) { return console.log(ex); } finally { return 0; }; }"))
+
+  (is (= (js (defn test [a] (if (< a 0) (throw (new Error "Negative numbers not accepted")))))
+         "test = function (a) { if ((a < 0)) { throw new Error(\"Negative numbers not accepted\"); }; }")))
 
 (deftest combo
   (is (= (js
