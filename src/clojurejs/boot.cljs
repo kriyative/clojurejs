@@ -108,6 +108,15 @@
         (recur r (+ 1 i)))
       r)))
 
+(defn filter [pred arr]
+  (loop [r []
+         i 0]
+    (if (< i (count arr))
+      (do
+        (if (pred (get arr i)) (.push r (get arr i)))
+        (recur r (+ i 1)))
+      r)))
+
 (defn merge
   "Merge the contents of map `m2' into map `m1' and return a new map."
   [m1 m2]

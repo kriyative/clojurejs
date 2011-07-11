@@ -66,4 +66,6 @@
 
   (is (= [1 2 3] (js-eval* {:preload *boot-js*} (vals {:foo 1 :bar 2 :baz 3}))))
 
-  (is (= ["foo" "bar" "baz"] (js-eval* {:preload *boot-js*} (keys {:foo 1 :bar 2 :baz 3})))))
+  (is (= ["foo" "bar" "baz"] (js-eval* {:preload *boot-js*} (keys {:foo 1 :bar 2 :baz 3}))))
+
+  (is (= [2 4 6] (js-eval* {:preload *boot-js*} (filter (fn [x] (=== (% x 2) 0)) [1 2 3 4 5 6])))))
