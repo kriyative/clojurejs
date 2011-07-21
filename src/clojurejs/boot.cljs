@@ -14,8 +14,8 @@
 (defmacro not [expr] `(! ~expr))
 (defmacro not= [expr1 expr2] `(!= ~expr1 ~expr2))
 (defmacro when [pred & body] `(if ~pred (do ~@body)))
-(defmacro when-not [pred & body] `(if (false? ~pred) (do ~@body)))
-(defmacro unless [pred & body] `(if (false? ~pred) (do ~@body)))
+(defmacro when-not [pred & body] `(if (not ~pred) (do ~@body)))
+(defmacro unless [pred & body] `(if (not ~pred) (do ~@body)))
 (defmacro cond [& [pred consequent & alternates]]
   (if (coll? alternates)
     (if (= (first alternates) :else)
