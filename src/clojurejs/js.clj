@@ -640,9 +640,12 @@ return as a string. Useful for translating an entire cljs script file."
   (binding [*temp-sym-count* (ref 999)]
     (with-out-str
       (doseq [f scripts]
-        (with-open [in (sexp-reader f)]
-          (loop [expr (read in false :eof)]
-            (when (not= expr :eof)
-              (if-let [s (emit-statement expr)]
-                (print s))
-              (recur (read in false :eof)))))))))
+        (try
+          (with-open [in (sexp-reader f)]
+            (loop [expr (read in false :eof)]
+              (when (not= expr :eof)
+                (if-let [s (emit-statement expr)]
+                  (print s))
+                (recur (read in false :eof)))))
+          (catch Throwable e
+            (throw (new Throwable (str "Error translating script " f) e))))))))
