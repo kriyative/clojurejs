@@ -528,11 +528,13 @@
 
 (defmethod emit "recur" [[_ & args]]
   (binding [*return-expr* false]
-    (emit-statements (keep identity
-                           (map (fn [lvar val]
-                                  (if-not (= lvar val) `(set! ~lvar ~val)))
-                                *loop-vars*
-                                args))))
+    (let [tmp (tempsym)]
+      (print "var" (emit-str tmp) "= ")
+      (emit-vector args)
+      (println ";")
+      (emit-statements (map (fn [lvar i] `(set! ~lvar (get ~tmp ~i)))
+                            *loop-vars*
+                            (range (count *loop-vars*))))))
   (newline-indent)
   (print "continue"))
 

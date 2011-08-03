@@ -162,7 +162,7 @@
                 (recur (+ str delim (get arr i))
                        (+ i 1))
                 str))))
-         "join = function (arr, delim) { for (var str = arr[0], i = 1; true;) { if ((i < arr.length)) {  str = (str + delim + arr[i]); i = (i + 1); continue; } else { return str; }; break; }; }")))
+         "join = function (arr, delim) { for (var str = arr[0], i = 1; true;) { if ((i < arr.length)) { var _temp_1000 = [(str + delim + arr[i]),(i + 1)];\n str = _temp_1000[0]; i = _temp_1000[1]; continue; } else { return str; }; break; }; }")))
 
 (deftest inline-if
   (is (= (js
