@@ -54,26 +54,35 @@
                  (partition 2 bindings))))))
 
 (defmacro doseq [[var seq] & body]
-  `(do
-     (lvar seq# ~seq)
-     (loop [i# 0]
-       (when (< i# (count seq#))
-         (let [~var (get seq# i#)]
-           ~@body)
-         (recur (+ i# 1))))))
+  (let [seqsym (gensym)]
+    `(do
+       (lvar ~seqsym ~seq)
+       (loop [i# 0]
+         (when (< i# (count ~seqsym))
+           (let [~var (get ~seqsym i#)]
+             ~@body)
+           (recur (+ i# 1)))))))
 
 (defmacro dotimes [[var n] & body]
-  `(do
-     (lvar n# ~n)
-     (loop [~var 0]
-       (when (< ~var n#)
-         ~@body
-         (recur (+ ~var 1))))))
+  (let [nsym (gensym)]
+    `(do
+       (lvar ~nsym ~n)
+       (loop [~var 0]
+         (when (< ~var ~nsym)
+           ~@body
+           (recur (+ ~var 1)))))))
+
+(defn reduce [f val coll]
+  (loop [i 0
+         r val]
+    (if (< i (count coll))
+      (recur (+ i 1) (f r (get coll i)))
+      r)))
 
 (def *gensym* 999)
 (defn gensym []
   (inc! *gensym*)
-  (str "_gensym" *gensym*))
+  (str "G__" *gensym*))
 
 (defn subvec [a s e]
   (let [e (or e (count a))

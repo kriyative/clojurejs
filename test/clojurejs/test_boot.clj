@@ -56,6 +56,26 @@
                 [p1 p2]))
             (test)))))
 
+(deftest dotimes-test
+  (is (= 100
+         (js-eval
+          (defn test []
+            (let [sum 0]
+              (dotimes [i 5]
+                (dotimes [j 5]
+                  (set! sum (+ sum (* i j)))))
+              sum))
+          (test)))))
+
+(deftest reduce-test
+  (is (= 120
+         (js-eval* {:preload *boot-js*}
+                   (defn test []
+                     (reduce (fn [r x] (* r x))
+                             1
+                             [1 2 3 4 5]))
+                   (test)))))
+
 (deftest core-fns
   (is (= (js (defn has-foo? [] (contains? {:foo 1 :bar 2} :foo)))
          "has_foop = function () { return 'foo' in {'foo' : 1,'bar' : 2}; }"))
