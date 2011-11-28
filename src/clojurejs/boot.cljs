@@ -7,11 +7,11 @@
 (defmacro undefined? [expr] `(=== undefined ~expr))
 (defmacro nil? [expr] `(=== nil ~expr))
 (defmacro count [x] `(inline ~(str (clojurejs.js/emit-str x) ".length")))
+(defmacro not [expr] `(! ~expr))
 (defn empty? [s] (or (nil? s) (=== 0 (count s))))
-(defn not-empty? [s] (and s (> (count s) 0)))
+(defn not-empty? [s] (not (empty? s)))
 (defmacro contains? [m k]
   `(inline ~(str (clojurejs.js/emit-str k) " in " (clojurejs.js/emit-str m))))
-(defmacro not [expr] `(! ~expr))
 (defmacro not= [expr1 expr2] `(!= ~expr1 ~expr2))
 (defmacro when [pred & body] `(if ~pred (do ~@body)))
 (defmacro when-not [pred & body] `(if (not ~pred) (do ~@body)))
@@ -40,10 +40,7 @@
 (defmacro inc! [arg] `(set! ~arg (+ 1 ~arg)))
 (defmacro dec! [arg] `(set! ~arg (- ~arg 1)))
 
-(defmacro delete [arg]
-  `(do
-     (inline ~(str "delete " (clojurejs.js/emit-str arg)))
-     nil))
+(defmacro delete [arg] `(inline ~(str "delete " (clojurejs.js/emit-str arg))))
 
 (defmacro lvar [& bindings]
   `(inline
