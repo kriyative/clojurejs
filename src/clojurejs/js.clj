@@ -383,7 +383,8 @@
                             (emit-statement consequent)))
                         (newline-indent)
                         (print "}")
-                        (when alternate
+                        ;; alternate might be `0`, which js equates as `nil`
+                        (when-not (nil? alternate)
                           (print " else {")
                           (with-block
                             (with-indent []
