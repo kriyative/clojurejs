@@ -637,10 +637,13 @@ translate the Clojure subset `exprs' to a string of javascript code."
       (js-let ~bindings ~@forms)
       "});"]))
 
+(def *last-sexpr* nil)
+
 (defn tojs [& scripts]
   "Load and translate the list of cljs scripts into javascript, and
 return as a string. Useful for translating an entire cljs script file."
-  (binding [*temp-sym-count* (ref 999)]
+  (binding [*temp-sym-count* (ref 999)
+            *last-sexpr* (ref nil)]
     (with-out-str
       (doseq [f scripts]
         (try
@@ -648,7 +651,13 @@ return as a string. Useful for translating an entire cljs script file."
             (loop [expr (read in false :eof)]
               (when (not= expr :eof)
                 (if-let [s (emit-statement expr)]
-                  (print s))
+                  (print s)
+                  (dosync
+                   (ref-set *last-sexpr* expr)))
                 (recur (read in false :eof)))))
           (catch Throwable e
-            (throw (new Throwable (str "Error translating script " f) e))))))))
+            (throw (new Throwable
+                        (str
+                         "Error translating script " f
+                         " last s-expr " @*last-sexpr*)
+                        e))))))))
