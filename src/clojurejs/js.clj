@@ -85,6 +85,15 @@
                         (print " : ")
                         (emit val))))))
 
+(defn- emit-set [expr]
+  (with-parens ["{" "}"]
+    (binding [*inline-if* true]
+      (emit-delimited ","
+                      (seq expr)
+                      (fn [key]
+                        (emit key)
+                        (print " : true"))))))
+
 (defn- emit-vector [expr]
   (with-parens ["[" "]"]
     (binding [*inline-if* true]
@@ -570,6 +579,7 @@
     (with-return-expr []
       (cond
        (map? expr) (emit-map expr)
+       (set? expr) (emit-set expr)
        (vector? expr) (emit-vector expr)
        (re? expr) (emit-re expr)
        (keyword? expr) (emit-keyword expr)
