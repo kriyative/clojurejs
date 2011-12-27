@@ -92,8 +92,9 @@
         r))))
 
 (defn map? [m]
-  (let [t (typeof m)]
-    (not (or (=== "string" t) (=== "number" t) (=== "boolean" t) (array? m)))))
+  (and m
+       (not (or (contains? #{:string :number :boolean} (typeof m))
+                (array? m)))))
 
 (defn map [fun arr]
   (loop [r []
