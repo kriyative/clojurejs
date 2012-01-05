@@ -8,7 +8,7 @@
 (defmacro nil? [expr] `(=== nil ~expr))
 (defmacro count [x] `(inline ~(str (clojurejs.js/emit-str x) ".length")))
 (defmacro not [expr] `(! ~expr))
-(defn empty? [s] (or (nil? s) (=== 0 (count s))))
+(defn empty? [s] (or (undefined? s) (nil? s) (=== 0 (count s))))
 (defn not-empty? [s] (not (empty? s)))
 (defmacro contains? [m k]
   `(inline ~(str (clojurejs.js/emit-str k) " in " (clojurejs.js/emit-str m))))
