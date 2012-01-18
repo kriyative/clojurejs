@@ -149,11 +149,6 @@
          (fn [x y & {z :z}] z))))
   )
 
-(deftest macros
-  (is (= (js
-          (if (nil? a) (print "is null")))
-         "if ((null === a)) { print(\"is null\"); }")))
-    
 (deftest loops
   (is (= (js
           (defn join [arr delim]
@@ -196,7 +191,7 @@
 (deftest combo
   (is (= (js
           (defn test [a] (if (! (or (boolean? a) (string? a))) (first a))))
-         "test = function (a) { if (!((\"boolean\" === typeof(a)) || (\"string\" === typeof(a)))) { return a[0]; }; }"))
+         "test = function (a) { if (!(booleanp(a) || stringp(a))) { return first(a); }; }"))
 
   (is (= (js
           (defn test [a]
@@ -204,14 +199,14 @@
              (symbol? a) "yes"
              (number? a) "no"
              :else "don't know")))
-         "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" === typeof(a))) { return \"no\"; } else { return \"don't know\"; }; }; }"))
+         "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if (numberp(a)) { return \"no\"; } else { return \"don't know\"; }; }; }"))
 
   (is (= (js
           (defn test [a]
             (cond
              (symbol? a) "yes"
              (number? a) "no")))
-         "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if ((\"number\" === typeof(a))) { return \"no\"; }; }; }")))
+         "test = function (a) { if (symbolp(a)) { return \"yes\"; } else { if (numberp(a)) { return \"no\"; }; }; }")))
 
 (declare foo)
 
