@@ -1,4 +1,4 @@
-(defproject org.clojars.kriyative/clojurejs "1.2.17"
+(defproject org.clojars.kriyative/clojurejs "1.2.18"
   :description "A naive Clojure to Javascript translator"
   :url "http://github.com/kriyative/clojurejs"
   :dependencies [[org.clojure/clojure "1.2.0"]
