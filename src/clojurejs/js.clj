@@ -591,7 +591,8 @@
        true (print expr)))))
 
 (defn emit-str [expr]
-  (binding [*return-expr* false]
+  (binding [*return-expr* false
+            *inline-if* true]
     (with-out-str (emit expr))))
 
 (defn js-emit [expr] (emit expr))
